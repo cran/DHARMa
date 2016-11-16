@@ -41,7 +41,8 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
   family = family(fittedModel)
   
   if(is.null(integerResponse)){
-    if (family$family %in% c("binomial", "poisson", "quasibinomial", "quasipoisson")) integerResponse = T
+    if (family$family %in% c("binomial", "poisson", "quasibinomial", "quasipoisson", "Negative Binom") | 
+        startsWith(family$family, "Negative Binomial")) integerResponse = T
     else integerResponse = F
   }
   
@@ -52,6 +53,7 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
   out$nSim = n
   out$refit = refit
   out$observedResponse = model.frame(fittedModel)[,1]
+  out$integerResponse = integerResponse
   
   ## following block re-used below, create function for this 
   
@@ -83,7 +85,7 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
     for (i in 1:out$nObs){
       
       if(integerResponse == T){
-        out$scaledResiduals[i] <- ecdf(out$simulatedResponse[i,] + runif(n, -0.5, 0.5))(out$observedResponse[i] + runif(1, -0.5, 0.5))           
+        out$scaledResiduals[i] <- ecdf(out$simulatedResponse[i,] + runif(out$nSim, -0.5, 0.5))(out$observedResponse[i] + runif(1, -0.5, 0.5))           
       }else{
         out$scaledResiduals[i] <- ecdf(out$simulatedResponse[i,])(out$observedResponse[i])
       }
@@ -136,7 +138,7 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
     for (i in 1:out$nObs){
     
       if(integerResponse == T){
-        out$scaledResiduals[i] <- ecdf(out$refittedResiduals[i,] + runif(n, -0.5, 0.5))(out$fittedResiduals[i] + runif(1, -0.5, 0.5))           
+        out$scaledResiduals[i] <- ecdf(out$refittedResiduals[i,] + runif(out$nSim, -0.5, 0.5))(out$fittedResiduals[i] + runif(1, -0.5, 0.5))           
       }else{
         out$scaledResiduals[i] <- ecdf(out$refittedResiduals[i,])(out$fittedResiduals[i])
       }
@@ -153,7 +155,7 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
   return(out)
 }
 
-getPossibleModels<-function()c("lm", "glm", "lmerMod", "glmerMod") 
+getPossibleModels<-function()c("lm", "glm", "negbin", "lmerMod", "glmerMod") 
 
 
 

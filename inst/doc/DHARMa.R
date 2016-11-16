@@ -23,10 +23,6 @@ plotConventionalResiduals(fittedModel)
 ## ---- eval = F-----------------------------------------------------------
 #  install.packages("DHARMa")
 
-## ---- eval = F-----------------------------------------------------------
-#  library(devtools)
-#  install_url("https://dl.dropboxusercontent.com/s/xlvjf0vpslukl29/DHARMa.tar.gz", dependencies = T)
-
 ## ------------------------------------------------------------------------
 library(DHARMa)
 citation("DHARMa")
@@ -74,7 +70,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plotSimulatedResiduals(simulationOutput = simulationOutput)
 testUniformity(simulationOutput = simulationOutput)
 
-## ----overDispersionTest, echo = F----------------------------------------
+## ----overDispersionTest, echo = T----------------------------------------
 simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, n = 250, refit = T)
 testOverdispersion(simulationOutput2)
 
