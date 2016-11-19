@@ -12,7 +12,7 @@
 
 <meta name="author" content="Florian Hartig, University of Freiburg / Regensburg, website" />
 
-<meta name="date" content="2016-11-16" />
+<meta name="date" content="2016-11-19" />
 
 <title>DHARMa - Residual Diagnostics for HierArchical (Multi-level / Mixed) Regression Models</title>
 
@@ -62,10 +62,10 @@ code > span.er { color: #ff0000; font-weight: bold; }
 
 <h1 class="title toc-ignore">DHARMa - Residual Diagnostics for HierArchical (Multi-level / Mixed) Regression Models</h1>
 <h4 class="author"><em>Florian Hartig, University of Freiburg / Regensburg, <a href="https://florianhartig.wordpress.com/">website</a></em></h4>
-<h4 class="date"><em>2016-11-16</em></h4>
+<h4 class="date"><em>2016-11-19</em></h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-<p>The DHARMa package uses a simulation-based approach to create readily interpretable scaled residuals from fitted generalized linear mixed models. Currently supported are all ‘merMod’ classes from ‘lme4’ (‘lmerMod’, ‘glmerMod’), ‘glm’ (including ‘negbin’ from ‘MASS’, but excluding quasi-distributions) and ‘lm’ model classes. The resulting residuals are standardized to values between 0 and 1 and can be interpreted as intuitively as residuals from a linear regression. The package also provides a number of plot and test functions for typical model mispecification problem, such as over/underdispersion, zero-inflation, and spatial and temporal autocorrelation.</p>
+<p>The DHARMa package uses a simulation-based approach to create readily interpretable scaled residuals from fitted generalized linear mixed models. Currently supported are all ‘merMod’ classes from ‘lme4’ (‘lmerMod’, ‘glmerMod’), ‘glm’ (including ‘negbin’ from ‘MASS’, but excluding quasi-distributions) and ‘lm’ model classes. Alternatively, externally created simulations, e.g. posterior predictive simulations from Bayesian software such as ‘JAGS’, ‘STAN’, or ‘BUGS’ can be processed as well. The resulting residuals are standardized to values between 0 and 1 and can be interpreted as intuitively as residuals from a linear regression. The package also provides a number of plot and test functions for typical model mispecification problem, such as over/underdispersion, zero-inflation, and spatial and temporal autocorrelation.</p>
 </div>
 
 
@@ -110,7 +110,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p>DHARMa aims at solving these problems by creating readily interpretable residuals for generalized linear (mixed) models that are standardized to values between 0 and 1, and that can be interpreted as intuitively as residuals for the linear model. This is achieved by a simulation-based approach, similar to the Bayesian p-value or the parametric bootstrap, that tranforms the residuals to a standardized scale. The basic steps are:</p>
 <ol style="list-style-type: decimal">
 <li><p>Simulate new data from the fitted model for the predictor variable combination of each observation.</p></li>
-<li><p>For each of these combinations, calculate the empirical cummulative density function, which describes the expected spread for an observation at the respective point in predictor space, conditional on the fitted model.</p></li>
+<li><p>For each observation, calculate the empirical cummulative density function, which describes the expected spread for an observation at the respective point in predictor space, conditional on the fitted model.</p></li>
 <li><p>The residual is defined as the value of the empirical density function at the value of the observed data.</p></li>
 </ol>
 <p>These steps are visualized in the following figure</p>
@@ -137,7 +137,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 ## 
 ##   Florian Hartig (2016). DHARMa: Residual Diagnostics for
 ##   Hierarchical (Multi-Level / Mixed) Regression Models. R package
-##   version 0.1.1. https://github.com/florianhartig/DHARMa
+##   version 0.1.2. https://github.com/florianhartig/DHARMa
 ## 
 ## A BibTeX entry for LaTeX users is
 ## 
@@ -145,7 +145,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 ##     title = {DHARMa: Residual Diagnostics for Hierarchical (Multi-Level / Mixed) Regression Models},
 ##     author = {Florian Hartig},
 ##     year = {2016},
-##     note = {R package version 0.1.1},
+##     note = {R package version 0.1.2},
 ##     url = {https://github.com/florianhartig/DHARMa},
 ##   }</code></pre>
 </div>
