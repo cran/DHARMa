@@ -33,6 +33,9 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel, n = 250)
 ## ---- eval = F-----------------------------------------------------------
 #  simulationOutput$scaledResiduals
 
+## ---- eval = F-----------------------------------------------------------
+#  simulationOutput$scaledResidualsNormal
+
 ## ------------------------------------------------------------------------
 plotSimulatedResiduals(simulationOutput = simulationOutput)
 
@@ -50,6 +53,9 @@ testUniformity(simulationOutput = simulationOutput)
 
 ## ---- eval= F------------------------------------------------------------
 #  simulationOutput <- simulateResiduals(fittedModel = fittedModel, n = 250, use.u = T)
+
+## ---- eval = F-----------------------------------------------------------
+#  res = createDHARMa(scaledResiduals = posteriorPredictiveSimulations, simulatedResponse = medianPosteriorPredictions, observedResponse = observations, integerResponse = ?)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, overdispersion = 2, family = poisson())
