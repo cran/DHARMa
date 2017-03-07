@@ -33,17 +33,34 @@ testUniformity<- function(simulationOutput){
 #' 
 #' @param simulationOutput an object with simulated residuals created by \code{\link{simulateResiduals}}
 #' @param plot whether to plot output
-#' @param alternative whether to test for "overdispersion", "underdispersion", or "both"
-#' @details This test compares the approximate deviance (via squared pearson residuals) with the same quantity from a number of simulated models. It is MUCH slower than the parametric alternative \code{\link{testOverdispersionParametric}}, but potentially more exact in situations where one would expect problems with the chi2 test employed in the parametric test
+#' @param alternative whether to test for "overdispersion", "underdispersion", or "both" (both reduces power)
+#' @details The function implements two tests, depending on whether it is applied on a simulation with refit = F, or refit = T. 
+#' 
+#' If refit = F (not recommended), the function tests if the IQR of the scaled residuals deviate from the null hypothesis of a uniform distribution. Simulations show that this option is not properly calibrated and much less powerful than the parametric alternative \code{\link{testOverdispersionParametric}} and even the simple \code{\link{testUniformity}}, and therefore it's use is not recommended. A warning will be returned if the function is called. 
+#' 
+#' If refit = T, the function compares the approximate deviance (via squared pearson residuals) with the same quantity from the models refitted with simulated data. It is much slower than the parametric alternative \code{\link{testOverdispersionParametric}}, but simulations show that it is slightly more powerful than the latter, and more powerful than any other non-parametric test in DHARMa, and it doesn't make any parametric assumptions. However, given the computational cost, I would suggest that most users will be satisfied with the parametric overdispersion test. 
+#' 
 #' @seealso \code{\link{testSimulatedResiduals}}, \code{\link{testSimulatedResiduals}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testOverdispersionParametric}}
 #' @export
 testOverdispersion <- function(simulationOutput, alternative = "overdispersion", plot = F){
   
-  if(simulationOutput$refit == F) stop("Overdispersion test requires simulated residuals with refit = T")
+  out = list()
   
-  observed = sum(residuals(simulationOutput$fittedModel, type = "pearson")^2)
+  if(simulationOutput$refit == F){
+    warning("You have called the non-parametric test for overdispersion based on the scaled residuals. Simulations show that this test is less powerful for detecting overdispersion than the default uniform test on the sclaed residuals, and a lot less powerful than a parametric overdispersion test, or the non-parametric test on re-simulated residuals. The test you called is only implemented for testing / development purposes, there is no scenario where it would be preferred. See vignette for details.")
+    observed = IQR(simulationOutput$scaledResiduals)
+    sims = matrix(runif(simulationOutput$nObs * 1000), nrow = 1000)
+    ss = apply(sims, 1, IQR)
+    out$statistic = c(dispersion = observed / mean(ss))
+    out$method = "DHARMa nonparametric overdispersion test via IQR of scaled residuals against IQR expected under uniform"
+  } else {
+    observed = sum(residuals(simulationOutput$fittedModel, type = "pearson")^2)
+    ss = apply(simulationOutput$refittedPearsonResiduals^2 , 2, sum)
+    out$statistic = c(dispersion = observed / mean(ss))
+    out$method = "DHARMa nonparametric overdispersion test via comparison to simulation under H0 = fitted model"
+  }
   
-  ss = apply(simulationOutput$refittedPearsonResiduals^2 , 2, sum)
+  #stop("Overdispersion test requires simulated residuals with refit = T") 
   
   p = ecdf(ss)(observed)
   
@@ -51,9 +68,6 @@ testOverdispersion <- function(simulationOutput, alternative = "overdispersion",
   if(alternative == "underdispersion") p = p  
   if(alternative == "both") p = min(p, 1-p) * 2     
   
-  out = list()
-  out$statistic = c(dispersion = observed / mean(ss))
-  out$method = "Overdispersion test via comparison to simulation under H0"
   out$alternative = alternative
   out$p.value = p
   out$data.name = deparse(substitute(simulationOutput))
@@ -61,7 +75,7 @@ testOverdispersion <- function(simulationOutput, alternative = "overdispersion",
   class(out) = "htest"
 
   if(plot == T) {
-    hist(ss, xlim = range(ss, observed ))
+    hist(ss, xlim = range(ss, observed, na.rm = T))
     abline(v = observed, lwd= 2, col = "red")
   }
   return(out)
@@ -96,7 +110,7 @@ testZeroInflation <- function(simulationOutput,  plot = T, alternative = "more")
   
   out = list()
   out$statistic = c(ratioObsExp = zerosObserved / mean(zerosExpected))
-  out$method = "Zero-inflation test via comparison to expected zeros with simulation under H0"
+  out$method = "DHARMa zero-inflation test via comparison to expected zeros with simulation under H0 = fitted model"
   out$alternative = alternative
   out$p.value = p
   out$data.name = deparse(substitute(simulationOutput))
@@ -104,7 +118,7 @@ testZeroInflation <- function(simulationOutput,  plot = T, alternative = "more")
   class(out) = "htest"
 
   if(plot == T) {
-    hist(zerosExpected, xlim = range(zerosExpected, zerosObserved ))
+    hist(zerosExpected, xlim = range(zerosExpected, zerosObserved, na.rm=T ))
     abline(v = zerosObserved, lwd= 2, col = "red")
   }
   return(out)
@@ -163,7 +177,7 @@ testSpatialAutocorrelation <- function(simulationOutput, x , y , plot = T){
   
   out = list()
   out$statistic = c(observed = MI$observed, expected = MI$expected, sd = MI$sd)
-  out$method = "Moran's I"
+  out$method = "DHARMa Moran's I test for spatial autocorrelation"
   out$alternative = "Spatial autocorrelation"
   out$p.value = MI$p.value
   out$data.name = deparse(substitute(simulationOutput))

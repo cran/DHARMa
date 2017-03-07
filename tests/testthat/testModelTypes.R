@@ -19,6 +19,10 @@ runEverything = function(fittedModel, testData, DHARMaData = T){
   testZeroInflation(simulationOutput = simulationOutput)
   testTemporalAutocorrelation(simulationOutput = simulationOutput, time = runif(length(simulationOutput$scaledResiduals )))
   testSpatialAutocorrelation(simulationOutput = simulationOutput, x = runif(length(simulationOutput$scaledResiduals )), y =  runif(length(simulationOutput$scaledResiduals )))
+  
+  # currently not testing the following because of warning
+  #testOverdispersion(simulationOutput)
+  #testOverdispersion(simulationOutput, alternative = "both", plot = T)
 
 
   simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, refit = T, n = 10) # n=10 is very low, set higher for serious tests
@@ -27,6 +31,7 @@ runEverything = function(fittedModel, testData, DHARMaData = T){
   plot(simulationOutput2, quantreg = F)
 
   testOverdispersion(simulationOutput2)
+  testOverdispersion(simulationOutput2, alternative = "both", plot = T)
   testOverdispersionParametric(fittedModel)
 
 }
@@ -35,8 +40,8 @@ runEverything = function(fittedModel, testData, DHARMaData = T){
 test_that("lm gaussian works",
           {
             skip_on_cran()
-            testData = createData(sampleSize = 100, overdispersion = 0, randomEffectVariance = 0, family = gaussian())
-            fittedModel <- lm(observedResponse ~ Environment1 , data = testData)
+            testData = createData(sampleSize = 100, fixedEffects = c(1,0), overdispersion = 0, randomEffectVariance = 0, family = gaussian())
+            fittedModel <- lm(observedResponse ~ Environment1 + Environment2 , data = testData)
             runEverything(fittedModel, testData)
           }
 )
@@ -81,11 +86,20 @@ test_that("lmer gaussian works",
 # )
 
 
+test_that("glm binomial y/n (factor) works",
+          {
+            skip_on_cran()
+            testData = createData(sampleSize = 200, fixedEffects = c(1,0), overdispersion = 0, randomEffectVariance = 0, family = binomial(), factorResponse = T)
+            fittedModel <- glm(observedResponse ~ Environment1 + Environment2 , family = "binomial", data = testData)
+            runEverything(fittedModel, testData)
+          }
+)
+
 test_that("glm binomial 1/0 works",
           {
             skip_on_cran()
-            testData = createData(sampleSize = 200, overdispersion = 0, randomEffectVariance = 0, family = binomial())
-            fittedModel <- glm(observedResponse ~ Environment1 , family = "binomial", data = testData)
+            testData = createData(sampleSize = 200, fixedEffects = c(1,0), overdispersion = 0, randomEffectVariance = 0, family = binomial())
+            fittedModel <- glm(observedResponse ~ Environment1 + Environment2 , family = "binomial", data = testData)
             runEverything(fittedModel, testData)
           }
 )

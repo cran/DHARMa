@@ -1,7 +1,7 @@
 #' Create simulated residuals
 #' 
 #' The function creates scaled residuals by simulating from the fitted model
-#' @param fittedModel fitted model object. Supproted are generalized linear mixed models from 'lme4' (classes 'lmerMod', 'glmerMod'), generalized additive models ('gam' from 'mgcv', excluding extended families from 'mgcv'), 'glm' (including 'negbin' from 'MASS', but excluding quasi-distributions) and 'lm' model classes. 
+#' @param fittedModel fitted model object. Supported are generalized linear mixed models from 'lme4' (classes 'lmerMod', 'glmerMod'), generalized additive models ('gam' from 'mgcv', excluding extended families from 'mgcv'), 'glm' (including 'negbin' from 'MASS', but excluding quasi-distributions) and 'lm' model classes. 
 #' @param n integer number > 1, number of simulations to run. If possible, set to at least 250, better 1000. See also details
 #' @param refit if F, new data will be simulated and scaled residuals will be created by comparing observed data with new data. If T, the model will be refit on the simulated data (parametric bootstrap), and scaled residuals will be created by comparing observed with refitted residuals.
 #' @param integerResponse if T, noise will be added at to the residuals to maintain a uniform expectations for integer responses (such as Poisson or Binomial). Usually, the model will automatically detect the appropriate setting, so there is no need to adjust this setting.
@@ -36,11 +36,9 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
   
   # assertions
   
-  if (n < 2) stop("error in DHARMa::simulateResiduals - n > 1 is required to calculate scaled residusl")
+  if (n < 2) stop("error in DHARMa::simulateResiduals: n > 1 is required to calculate scaled residuals")
   
-  if(!(class(fittedModel)[1] %in% getPossibleModels())) warning("DHARMa: fittedModel not in class of supported models. Absolutely no guarantee that this will work!")
-  
-  if (class(fittedModel)[1] == "gam" ) if (class(fittedModel$family)[1] == "extended.family") stop("It seems you are trying to fit a model from mgcv that was fit with an extended.family. Simulation functions for these families are not yet implemented in DHARMa. See issue https://github.com/florianhartig/DHARMa/issues/11 for updates about this")
+  checkModel(fittedModel)
   
   ptm <- proc.time() 
   
@@ -60,6 +58,8 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
   out$observedResponse = model.frame(fittedModel)[,1]  
   out$integerResponse = integerResponse
   
+  out$problems = list()
+  
   ## following block re-used below, create function for this 
   
   out$fittedPredictedResponse = predict(fittedModel, type = "response", re.form = ~0) # sensible to have re-form set to ~0?
@@ -76,12 +76,16 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
   out$fittedResiduals = residuals(fittedModel, type = "response")
   
   simulations = simulate(fittedModel, nsim = n, ...)
-  
+ 
   if(is.vector(simulations[[1]])){
-    out$simulatedResponse = data.matrix(simulations) 
+    out$simulatedResponse = data.matrix(simulations)
   } else if (is.matrix(simulations[[1]])){
     out$simulatedResponse = as.matrix(simulations)[,seq(1, (2*n), by = 2)]
-  } else stop("wrong class")
+  } else if(is.factor(simulations[[1]])){
+    if(nlevels(simulations[[1]]) != 2) warning("The fitted model has a factorial response with number of levels not equal to 2 - there is currently no sensible application in DHARMa that would lead to this situation. Likely, you are trying something that doesn't work.")
+    out$simulatedResponse = data.matrix(simulations) - 1
+    out$observedResponse = as.numeric(out$observedResponse) - 1
+  } else stop("DHARMa error - simulations resulted in unsupported class - if this happens for a supported model please report an error at https://github.com/florianhartig/DHARMa/issues")
   
   out$scaledResiduals = rep(NA, out$nObs)
 
@@ -117,12 +121,21 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
       
       if(is.vector(simObserved)){
         newData[,1] = simObserved
+      } else if (is.factor(simObserved)){
+        # Hack to make the factor binomial case work
+        newData[,1] = as.numeric(simObserved) - 1
       } else {
         # Hack to make the binomial n/k case work
         newData[[1]] = NULL
         newData = cbind(simObserved, newData)
       }
       
+      #tryCatch()
+      try({
+        
+        # for testing
+        if (i==3) stop("x")
+        
       refittedModel = update(fittedModel, data = newData)
       out$refittedPredictedResponse[,i] = predict(refittedModel, type = "response")
       
@@ -138,8 +151,22 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
       out$refittedResiduals[,i] = residuals(refittedModel, type = "response")
       out$refittedPearsonResiduals[,i] = residuals(refittedModel, type = "pearson")
       #out$refittedRandomEffects[,i]  = ranef(refittedModel)
+      })
     }
+
+    if(anyNA(out$refittedResiduals)) warning("DHARMa::simulateResiduals warning: on refit = T, at least one of the refitted models produced an error. Inspect the refitted model values. Results may not be reliable.")
     
+    ## check for convergece problems
+    
+    dup = sum(duplicated(out$refittedFixedEffects, MARGIN = 2))
+    if (dup > 0){
+      if (dup < n/3){
+        warning(paste("There were", dup, "of", n ,"duplicate parameter estimates in the refitted models. This may hint towards a problem with optimizer convergence in the fitted models. Results may not be reliable. The suggested action is to not use the refitting procedure, and diagnose with tools available for the normal (not refitted) simulated residuals. If you absolutely require the refitting procedure, try changing tolerance / iterations in the optimizer settings."))
+      } else warning(paste("There were", dup, "of", n ,"duplicate parameter estimates in the refitted models. This may hint towards a problem with optimizer convergence in the fitted models. Results are likely not reliable. The suggested action is to not use the refitting procedure, and diagnose with tools available for the normal (not refitted) simulated residuals. If you absolutely require the refitting procedure, try changing tolerance / iterations in the optimizer settings."))
+      out$problems[[length(out$problems)+ 1]] = "error in refit"
+    } 
+    
+
     for (i in 1:out$nObs){
     
       if(integerResponse == T){
@@ -162,6 +189,12 @@ simulateResiduals <- function(fittedModel, n = 250, refit = F, integerResponse =
 
 getPossibleModels<-function()c("lm", "glm", "negbin", "lmerMod", "glmerMod", "gam") 
 
+
+checkModel <- function(fittedModel){
+  if(!(class(fittedModel)[1] %in% getPossibleModels())) warning("DHARMa: fittedModel not in class of supported models. Absolutely no guarantee that this will work!")
+  
+  if (class(fittedModel)[1] == "gam" ) if (class(fittedModel$family)[1] == "extended.family") stop("It seems you are trying to fit a model from mgcv that was fit with an extended.family. Simulation functions for these families are not yet implemented in DHARMa. See issue https://github.com/florianhartig/DHARMa/issues/11 for updates about this")
+}
 
 
 

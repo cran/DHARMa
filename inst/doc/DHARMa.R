@@ -58,6 +58,12 @@ testUniformity(simulationOutput = simulationOutput)
 #  res = createDHARMa(scaledResiduals = posteriorPredictiveSimulations, simulatedResponse = medianPosteriorPredictions, observedResponse = observations, integerResponse = ?)
 
 ## ------------------------------------------------------------------------
+set.seed(123)
+
+## ---- eval = F-----------------------------------------------------------
+#  sessionInfo()
+
+## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, overdispersion = 2, family = poisson())
 fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , family = "poisson", data = testData)
 
@@ -77,11 +83,15 @@ plotSimulatedResiduals(simulationOutput = simulationOutput)
 testUniformity(simulationOutput = simulationOutput)
 
 ## ----overDispersionTest, echo = T----------------------------------------
-simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, n = 250, refit = T)
-testOverdispersion(simulationOutput2)
-
-## ------------------------------------------------------------------------
+# Option 1
 testOverdispersionParametric(fittedModel)
+
+# Option 2
+testOverdispersion(simulationOutput)
+
+# Option 3
+simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, refit = 2)
+testOverdispersion(simulationOutput2)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, intercept = 2, fixedEffects = c(1), overdispersion = 0, family = poisson(), quadraticFixedEffects = c(-3), randomEffectVariance = 0, pZeroInflation = 0.6)
@@ -196,8 +206,7 @@ plotSimulatedResiduals(simulationOutput = simulationOutput)
 testUniformity(simulationOutput = simulationOutput)
 
 ## ------------------------------------------------------------------------
-simulationOutput2 <- simulateResiduals(fittedModel = mod1, refit = T) # remember for this test we need the refit option
-testOverdispersion(simulationOutput = simulationOutput2)
+testOverdispersion(simulationOutput = simulationOutput)
 
 ## ------------------------------------------------------------------------
 mod2 <- glmer(cbind(N_parasitized, N_adult) ~ logDensity + (1|ID), data = data, family=binomial)

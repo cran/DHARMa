@@ -1,4 +1,4 @@
-#' Parametric overdipersion test
+#' Parametric overdispersion test
 #' 
 #' This function implements a parametric dispersion test based on comparing the residual devialce to the residual degrees of freedom that is commonly used, with the purpose of benchmarking against the nonparametric tests of DHARMA
 #' 
@@ -22,8 +22,8 @@
 #' @export
 testOverdispersionParametric <- function(model){
   
-  if(! class(model)[1] %in% c("lmer", "glmer")){
-    return("Parametric overdispersion test not implemented for this model type")
+  if(! class(model)[1] %in% c("glmerMod")){
+    return("DHARMa::testOverdispersionParametric currently only works for GLMMs in lme4. For Poisson GLMs, you can use AER::dispersiontest, otherwise use the non-parametric tests of DHARMa to test dispersion.")
   }
   
   ## number of variance parameters in
