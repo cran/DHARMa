@@ -90,7 +90,7 @@ testOverdispersionParametric(fittedModel)
 testOverdispersion(simulationOutput)
 
 # Option 3
-simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, refit = 2)
+simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, refit = T, n = 20)
 testOverdispersion(simulationOutput2)
 
 ## ------------------------------------------------------------------------

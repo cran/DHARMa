@@ -1,4 +1,4 @@
-287cafb8ba6d5872c961dda513c5638b *DESCRIPTION
+7ed19f2de2d79902e55b23f66bb3898e *DESCRIPTION
 e4fd37f80694afd805a56ddc6653e486 *NAMESPACE
 3971c77d93aac562b179e5edcc9816aa *NEWS
 a59ee03bd477c94a6940f73b6ccf7695 *R/DHARMa.R
@@ -8,14 +8,14 @@ db6bf3bc5fd654e4df7559209317f71a *R/benchmarkPvalues.R
 adb2820d612486f1c42a8f5a67306e00 *R/compatibility.R
 bb4744b935f79626eb2645f975d73af7 *R/createData.R
 bea4366ebf6c25cb1f60ad40a4545238 *R/plotResiduals.R
-6b723869387e69d9300b7b3bcce66cfe *R/simulateResiduals.R
+0147e4df4462d6f29f06af0b5d8fa744 *R/simulateResiduals.R
 59cf20cc291985f3004a3063cb834c23 *R/testsParametric.R
 bb3cbbd86cea1a17ec6082de47f618e9 *R/testsResiduals.R
 a6e48bd99870b498f834d904fceee3ae *README.md
 f2dbd1c400bb4f5fe093e24b9bdb3c13 *build/vignette.rds
-5e12f965ba5b4534c4b05ae47182b9d0 *inst/doc/DHARMa.R
-d47c73a7a916715081be4a1a9df31725 *inst/doc/DHARMa.Rmd
-ad444b4b3dafb3630432c1c0aedc3e4e *inst/doc/DHARMa.html
+0113ba1293714973342cff74a3a47b4b *inst/doc/DHARMa.R
+9124f80be9b0cd36c30170dccde4e326 *inst/doc/DHARMa.Rmd
+f38be961f1a27be5248a20c72541442c *inst/doc/DHARMa.html
 253c7e9399562b2dbe4e99af50f042f0 *inst/examples/benchmarkUniformityHelp.R
 157bf049ccdb1f599ae11ddcf143aae2 *inst/examples/createDataHelp.R
 1264168f26bf1986bc14708d559a7144 *inst/examples/simulateResidualsHelp.R
@@ -41,8 +41,8 @@ c2010cd9bf99e7c3b259f8432a7d3d40 *man/testSpatialAutocorrelation.Rd
 7bd92f2de6e235c9ba1386128e87c1a5 *man/testZeroInflation.Rd
 d5aa8faec227bf0814246e5fac73e550 *tests/manualTests/PowerBias.Rmd
 7a937c4b8c1697338629c07e0c69fa29 *tests/testthat.R
-337c48552ab9387ac36f0e9e2ebb6a60 *tests/testthat/testModelTypes.R
-d47c73a7a916715081be4a1a9df31725 *vignettes/DHARMa.Rmd
+7c432dcda9e633dfa7b4914ad0eb5861 *tests/testthat/testModelTypes.R
+9124f80be9b0cd36c30170dccde4e326 *vignettes/DHARMa.Rmd
 b000602365ac103560fadbb319f84d6c *vignettes/ECDFmotivation.pdf
 2e9ebf8d3e62710ad6ccb5fcc48a02ce *vignettes/ECDFmotivation.png
 cf381171170f8654c3f9dc11c775c233 *vignettes/overdispersion.png
