@@ -54,6 +54,15 @@ testUniformity(simulationOutput = simulationOutput)
 ## ---- eval= F------------------------------------------------------------
 #  simulationOutput <- simulateResiduals(fittedModel = fittedModel, n = 250, use.u = T)
 
+## ------------------------------------------------------------------------
+simulationOutput <- simulateResiduals(fittedModel = fittedModel, seed = NA)
+testUniformity(simulationOutput)
+simulationOutput <- simulateResiduals(fittedModel = fittedModel, seed = NA)
+testUniformity(simulationOutput)
+
+## ---- eval = F-----------------------------------------------------------
+#  simulationOutput$randomState
+
 ## ---- eval = F-----------------------------------------------------------
 #  res = createDHARMa(scaledResiduals = posteriorPredictiveSimulations, simulatedResponse = medianPosteriorPredictions, observedResponse = observations, integerResponse = ?)
 
@@ -154,7 +163,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
 ## ---- fig.width=4, fig.height=4------------------------------------------
 testTemporalAutocorrelation(simulationOutput = simulationOutput, time = testData$time)
-testTemporalAutocorrelation(simulationOutput = simulationOutput, time = "random")
+testTemporalAutocorrelation(simulationOutput = simulationOutput)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 100, family = poisson(), spatialAutocorrelation = 5)
@@ -166,7 +175,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
 ## ---- fig.width=4, fig.height=4------------------------------------------
 testSpatialAutocorrelation(simulationOutput = simulationOutput, x = testData$x, y= testData$y)
-testSpatialAutocorrelation(simulationOutput = simulationOutput, x = "random", y= "random")
+testSpatialAutocorrelation(simulationOutput = simulationOutput)
 
 ## ---- echo = F-----------------------------------------------------------
 data = structure(list(N_parasitized = c(226, 689, 481, 960, 1177, 266, 

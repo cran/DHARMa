@@ -1,5 +1,29 @@
 NOTE: for more news about the package, see https://github.com/florianhartig/DHARMa/releases
 
+DHARMa 0.1.6
+
+New features
+
+- option to apply rank tranformation of x values in plotResiduals, see https://github.com/florianhartig/DHARMa/issues/44
+- option to convert predictor to factor
+- random seed is fixed, random state is recorded
+
+Minor changes
+
+- changed syntax in tests for sptial / temporal autocorrlation - null provides now random. Also, custom distance matrices can be provided to testSpatialAutocorrelation
+- slight changes to plot layout
+
+Bugfixes
+
+- error catching for crashes in plot function https://github.com/florianhartig/DHARMa/issues/42
+- bugfix for glmer.nb parametricOverdispersinTest https://github.com/florianhartig/DHARMa/issues/47
+
+DHARMa 0.1.5
+
+Minor changes
+
+- fixes a bug in version 0.1.4 that occurred when running simulateResiduals with refit = T. Apologies for any inconvenience. 
+
 DHARMa 0.1.4 
 
 Major changes

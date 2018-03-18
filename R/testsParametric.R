@@ -1,6 +1,6 @@
 #' Parametric overdispersion test
 #' 
-#' This function implements a parametric dispersion test based on comparing the residual devialce to the residual degrees of freedom that is commonly used, with the purpose of benchmarking against the nonparametric tests of DHARMA
+#' This function implements a parametric dispersion test based on comparing the residual deviance to the residual degrees of freedom that is commonly used, with the purpose of benchmarking against the nonparametric tests of DHARMA
 #' 
 #' @param model a fitted model object. See details for possible models
 #' @details The general idea of such as test is to copy GLM wisdom that we can define a dispersion parameter as residual deviance / residual degrees of freedom. For a model with correct dispersion, this parameter
@@ -57,7 +57,7 @@ testOverdispersionParametric <- function(model){
   
   pval <- pchisq(Pearson.chisq, df=rdf, lower.tail=FALSE)
   
-  out = list (statistic=c(dispersion=prat, pearSS = Pearson.chisq, rdf=rdf), method = "Chisq test for overdispersion in GLMMs", alternative = "true dispersion greater 1", data.name = model@call$family, p.value = pval)
+  out = list(statistic=c(dispersion=prat, pearSS = Pearson.chisq, rdf=rdf), method = "Chisq test for overdispersion in GLMMs", alternative = "true dispersion greater 1", data.name = as.character(model@call$family), p.value = pval)
   class(out) = "htest"
   return(out)
 }

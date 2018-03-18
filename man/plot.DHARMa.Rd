@@ -14,3 +14,6 @@
 \description{
 Plot simulated residuals
 }
+\details{
+The function calls \code{\link{plotSimulatedResiduals}} - see details there
+}

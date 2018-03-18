@@ -2,7 +2,7 @@
 #' 
 #' This is intended as a wrapper for the various test functions. Currently, this function calls only the \code{\link{testUniformity}} function. Other tests (see below) have to be called by hand
 #' 
-#' @param simulationOutput an object with simulated residuals created by \code{\link{simulateResiduals}}
+#' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
 #' @details Currently, this function calls only the \code{\link{testUniformity}} function. All other tests (see below) have to be called by hand. 
 #' @export
 #' @seealso \code{\link{testUniformity}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testOverdispersion}}, \code{\link{testOverdispersionParametric}}
@@ -14,14 +14,13 @@ testSimulatedResiduals <- function(simulationOutput){
 
 #' Test for overall uniformity 
 #' 
-#' This function tests the overall uniformity of the residuals
+#' This function tests the overall uniformity of the simulated residuals in a DHARMa object
 #' 
-#' @param simulationOutput an object with simulated residuals created by \code{\link{simulateResiduals}}
-#' @details Tests residuals against a uniform distribution with the KS test 
+#' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
+#' @details The function applies a KS test for uniformity on the simulated residuals
 #' @seealso \code{\link{testSimulatedResiduals}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testOverdispersion}}, \code{\link{testOverdispersionParametric}}
 #' @export
 testUniformity<- function(simulationOutput){
-  
   out <- suppressWarnings(ks.test(simulationOutput$scaledResiduals, 'punif'))
   return(out)
 }
@@ -31,7 +30,7 @@ testUniformity<- function(simulationOutput){
 #' 
 #' This function performs a simulation-based test for over/underdispersion 
 #' 
-#' @param simulationOutput an object with simulated residuals created by \code{\link{simulateResiduals}}
+#' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
 #' @param plot whether to plot output
 #' @param alternative whether to test for "overdispersion", "underdispersion", or "both" (both reduces power)
 #' @details The function implements two tests, depending on whether it is applied on a simulation with refit = F, or refit = T. 
@@ -47,7 +46,7 @@ testOverdispersion <- function(simulationOutput, alternative = "overdispersion",
   out = list()
   
   if(simulationOutput$refit == F){
-    warning("You have called the non-parametric test for overdispersion based on the scaled residuals. Simulations show that this test is less powerful for detecting overdispersion than the default uniform test on the sclaed residuals, and a lot less powerful than a parametric overdispersion test, or the non-parametric test on re-simulated residuals. The test you called is only implemented for testing / development purposes, there is no scenario where it would be preferred. See vignette for details.")
+    warning("You have called the non-parametric test for overdispersion based on the scaled residuals. Simulations show that this test is less powerful for detecting overdispersion than the default uniform test on the scaled residuals, and a lot less powerful than a parametric overdispersion test, or the non-parametric test on re-simulated residuals. The test you called is only implemented for testing / development purposes, there is no scenario where it would be preferred. See vignette for details.")
     observed = IQR(simulationOutput$scaledResiduals)
     sims = matrix(runif(simulationOutput$nObs * 1000), nrow = 1000)
     ss = apply(sims, 1, IQR)
@@ -87,7 +86,7 @@ testOverdispersion <- function(simulationOutput, alternative = "overdispersion",
 #' 
 #' This function compares the observed number of zeros with the zeros expected from simulations. 
 #' 
-#' @param simulationOutput an object with simulated residuals created by \code{\link{simulateResiduals}}
+#' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
 #' @param plot whether to plot output
 #' @param alternative whether to test for 'more', 'less', or 'both' more or less zeros in the observed data
 #' @details shows the expected distribution of zeros against the observed
@@ -132,18 +131,20 @@ testZeroInflation <- function(simulationOutput,  plot = T, alternative = "more")
 #' @param simulationOutput an object with simulated residuals created by \code{\link{simulateResiduals}}
 #' @param time the time, in the same order as the data points. If set to "random", random values will be created
 #' @param plot whether to plot output
-#' @note It is possible to not specify x and y. In this case, random x and y values are created. The sense of this option is to test the rate of false positives under the current residual structure (random x/y corresponds to H0: no spatial autocorrelation). This may be useful because it may be that the test doesn't have noninal error rates due to some problem in the residual structure that is different from spatial autocorrelation
+#' @note The sense of being able to run the test with time = NULL (random values) is to test the rate of false positives under the current residual structure (random time corresponds to H0: no spatial autocorrelation), e.g. to check if the test has noninal error rates for particular residual structures (note that Durbin-Watson originally assumes normal residuals, error rates seem correct for uniform residuals, but may not be correct if there are still other residual problems).
 #' @details The function performs a Durbin-Watson test on the uniformly scaled residuals, and plots the residuals against time. The DB test was originally be designed for normal residuals. In simulations, I didn't see a problem with this setting though. The alternative is to transform the uniform residuals to normal residuals and perform the DB test on those.
 #' @seealso \code{\link{testUniformity}}, \code{\link{testZeroInflation}}, \code{\link{testSimulatedResiduals}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testOverdispersion}}, \code{\link{testOverdispersionParametric}}
+#' @example inst/examples/testTemporalAutocorrelationHelp.R
 #' @export
-testTemporalAutocorrelation <- function(simulationOutput, time , plot = T){
+testTemporalAutocorrelation <- function(simulationOutput, time = NULL , plot = T){
   
-  if(length(time) == 1) if(time == "random") time = sample.int(simulationOutput$nObs, simulationOutput$nObs)
+  if(is.null(time)) time = sample.int(simulationOutput$nObs, simulationOutput$nObs)
   
   out = lmtest::dwtest(simulationOutput$scaledResiduals ~ 1, order.by = time)
   
   if(plot == T) {
-    plot(simulationOutput$scaledResiduals ~ time)
+    col = colorRamp(c("red", "white", "blue"))(simulationOutput$scaledResiduals)
+    plot(simulationOutput$scaledResiduals ~ time, col = rgb(col, maxColorValue = 255))
   }
   return(out)
 }
@@ -153,22 +154,31 @@ testTemporalAutocorrelation <- function(simulationOutput, time , plot = T){
 #' 
 #' This function performs a standard test for spatial autocorrelation on the simulated residuals
 #' 
-#' @param simulationOutput an object with simulated residuals created by \code{\link{simulateResiduals}}
-#' @param x the x coordinate, in the same order as the data points. If set to "random", random values will be created
-#' @param y the x coordinate, in the same order as the data points. If set to "random", random values will be created
+#' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
+#' @param x the x coordinate, in the same order as the data points. If not provided, random values will be created
+#' @param y the x coordinate, in the same order as the data points. If not provided, random values will be created
+#' @param distMat optional distance matrix. If not provided, a distance matrix will be calculated based on x and y. See details for explanation
 #' @param plot whether to plot output
-#' @note It is possible to not specify x and y. In this case, random x and y values are created. The sense of this option is to test the rate of false positives under the current residual structure (random x/y corresponds to H0: no spatial autocorrelation). This may be useful because it may be that the test doesn't have noninal error rates due to some problem in the residual structure that is different from spatial autocorrelation
-#' @details performs Moran.I from the package ape to test against euklidian distance and plots the residuals against space
+#' @details The function performs Moran.I test from the package ape, based on the provided distance matrix of the data points. 
+#' 
+#' There are several ways to specify this distance. If a distance matrix (distMat) is provided, calculations will be based on this distance matrix, and x,y coordinates will only used for the plotting (if provided)
+#' If distMat is not provided, the function will calculate the euclidian distances between x,y coordinates, and test Moran.I based on these distances.
+#' 
+#' The sense of being able to run the test with x/y = NULL (random values) is to test the rate of false positives under the current residual structure (random x/y corresponds to H0: no spatial autocorrelation), e.g. to check if the test has noninal error rates for particular residual structures.
+#' 
 #' @seealso \code{\link{testUniformity}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSimulatedResiduals}}, \code{\link{testOverdispersion}}, \code{\link{testOverdispersionParametric}}
 #' @import grDevices
+#' @example inst/examples/testSpatialAutocorrelationHelp.R
 #' @export
-testSpatialAutocorrelation <- function(simulationOutput, x , y , plot = T){
+testSpatialAutocorrelation <- function(simulationOutput, x = NULL, y  = NULL, distMat = NULL, plot = T){
   
-  if(length(x) == 1) if (x == "random") x = runif(simulationOutput$nObs, -1,1) 
-  if(length(y) == 1) if (y == "random") y = runif(simulationOutput$nObs, -1,1)
-
+  if( !is.null(x) & !is.null(distMat) ) warning("coordinates and distMat provided, coordinates will only be used for plotting")
+  # if not provided, fill x and y with random numbers (Null model)
+  if(is.null(x)) x = runif(simulationOutput$nObs, -1,1) 
+  if(is.null(y)) y = runif(simulationOutput$nObs, -1,1)
   
-  distMat <- as.matrix(dist(cbind(x, y)))
+  # if not provided, create distance matrix based on x and y
+  if(is.null(distMat)) distMat <- as.matrix(dist(cbind(x, y)))
   
   invDistMat <- 1/distMat
   diag(invDistMat) <- 0

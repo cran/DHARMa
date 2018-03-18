@@ -9,7 +9,7 @@
 \arguments{
 \item{x}{an object with simulated residuals created by \code{\link{simulateResiduals}}}
 
-\item{...}{optional arguments to pass on to \code{\link{plotSimulatedResiduals}}}
+\item{...}{optional arguments for compatibility with genetic, no function implemented}
 }
 \description{
 Print simulated residuals
