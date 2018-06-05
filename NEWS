@@ -1,5 +1,29 @@
 NOTE: for more news about the package, see https://github.com/florianhartig/DHARMa/releases
 
+DHARMa 0.2.0
+
+
+New features
+
+- support for glmmTMB https://github.com/florianhartig/DHARMa/issues/16, implemented since https://github.com/florianhartig/DHARMa/releases/tag/v0.1.6.2
+- support for grouping of residuals, see https://github.com/florianhartig/DHARMa/issues/22
+- residual function for DHARMa
+
+
+Major changes
+
+- remodeled benchmarks functions in https://github.com/florianhartig/DHARMa/releases/tag/v0.1.6.3
+- remodeled dispersion testsin https://github.com/florianhartig/DHARMa/releases/tag/v0.1.6.4, adresses https://github.com/florianhartig/DHARMa/issues/62 
+
+Minor changes
+
+- changed plot function names in https://github.com/florianhartig/DHARMa/releases/tag/v0.1.6.1
+
+Bugfixes
+
+- fixed bug with zeroinflation test for k/n binomial data https://github.com/florianhartig/DHARMa/issues/55
+- fixed bug with p-value calculation via ecdf https://github.com/florianhartig/DHARMa/issues/55
+
 DHARMa 0.1.6
 
 New features
