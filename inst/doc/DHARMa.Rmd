@@ -7,12 +7,14 @@ output:
     toc: true
 vignette: >
   %\VignetteIndexEntry{Vignette for the DHARMa package}
-  %\VignetteEngine{knitr::knitr}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::knitr}
 abstract: "The 'DHARMa' package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted generalized linear mixed models. Currently supported are generalized linear mixed models from 'lme4' (classes 'lmerMod', 'glmerMod') and 'glmmTMB', generalized additive models ('gam' from 'mgcv'), 'glm' (including 'negbin' from 'MASS', but excluding quasi-distributions) and 'lm' model classes. Alternatively, externally created simulations, e.g. posterior predictive simulations from Bayesian software such as 'JAGS', 'STAN', or 'BUGS' can be processed as well. The resulting residuals are standardized to values between 0 and 1 and can be interpreted as intuitively as residuals from a linear regression. The package also provides a number of plot and test functions for typical model misspecification problems, such as over/underdispersion, zero-inflation, and residual spatial and temporal autocorrelation.\n \n \n"
+editor_options: 
+  chunk_output_type: console
 ---
 
-```{r, echo = F}
+```{r, echo = F, message = F}
 library(DHARMa)
 set.seed(123)
 ```
@@ -66,10 +68,9 @@ DHARMa aims at solving these problems by creating readily interpretable residual
 
 These steps are visualized in the following figure 
 
-
 <img src="ECDFmotivation.png" width="400">
 
-The key idea for this definition is that, if the model is correctly specified, then the observed data should look like as if it was created from the fitted model. Hence, for a correctly specified model, all values of the cumulative distribution should appear with equal probability. That means we expect the distribution of the residuals to be flat, regardless of the model structure (Poisson, binomial, random effects and so on).
+The key motivation behind this definition is that we have a clear expectations how these residuals should be distributed. If the model is correctly specified, then the observed data should look as if they were created from the fitted model. Hence, for a correctly specified model, all values of the cumulative distribution should appear with equal probability. That means we expect the distribution of the residuals to be flat, regardless of the model structure (Poisson, binomial, random effects and so on).
 
 I currently prepare a more exact statistical justification for the approach in an accompanying paper, but if you must provide a reference in the meantime I would suggest citing 
 
@@ -141,10 +142,11 @@ We can get a visual impression of these properties with the plot.DHARMa() functi
 plot(simulationOutput)
 ```
 
-which creates a qq-plot to detect overall deviations from the expected distribution, and a plot of the residuals against the predicted value. 
+which creates a qq-plot to detect overall deviations from the expected distribution (with added tests for uniformity and outliers), and a plot of the residuals against the predicted value. 
+
+In the plot res ~ predicted, simulation outliers are highlighted as red stars. By simulation outliers, I mean data points that are outside the range of simulated values. Because no data was simulated in that range, we actually don't know "how much" these values deviate from the model expecation, so the term "outlier" should be used with a grain of salt. Note also that the probability of an outlier depends on the number of simulations (in fact, it is 1/(nSim +1) for each side), so whether the existence of outliers is a reason for concern depends also on the number of simulations. 
 
 To provide a visual aid in detecting deviations from uniformity in y-direction, the plot of the residuals against the predicted values also performs an (optional) quantile regression, which provides 0.25, 0.5 and 0.75 quantile lines across the plots. These lines should be straight, horizontal, and at y-values of 0.25, 0.5 and 0.75. Note, however, that some deviations from this are to be expected by chance, even for a perfect model, especially if the sample size is small.  
-
 The quantile regression can be very slow for large datasets. You can chose to use a simpler method with the option quantreg = F. 
 
 If you want to plot the residuals against other predictors (highly recommend), you can use the function
@@ -157,30 +159,30 @@ which does the same quantile plot as the main plotting function.
 
 ## Formal goodness-of-fit tests on the scaled residuals
 
-To support the visual inspection of the residuals, the DHARMa package provides a number of specialized goodness-of-fit tests on the simulated residuals. For example, the function 
+To support the visual inspection of the residuals, the DHARMa package provides a number of specialized goodness-of-fit tests on the simulated residuals:
 
-```{r}
-testUniformity(simulationOutput = simulationOutput)
-```
-
-runs a KS test to test for overall uniformity of the residuals. There are a number of further tests 
-
-* testOverdispersion()
+* testUniformity()
+* testOutliers()
+* testDispersion()
 * testZeroinflation()
+* testGeneric()
 * testTemporalAutocorrelation()
 * testSpatialAutocorrelation()
 
-that basically do what they say. See the help of the functions and further comments below for a more detailed description.
+that basically do what they say. See the help of the functions and further comments below for a more detailed description. The wrapper function testResiduals calculates the first three tests, including their graphical outputs
+
+```{r, eval = F}
+testResiduals(simulationOutput)
+```
+
 
 ## Simulation options
 
-There are a few important technical details regarding how the simulations are performed, in particular regarding the treatments of random effects and integer responses. I would therefore strongly recommend to read the help of
+There are a few important technical details regarding how the simulations are performed, in particular regarding the treatments of random effects and integer responses. It is strongly recommended to read the help of
 
 ```{r, eval = F}
 ?simulateResiduals
 ```
-
-The short summary is this: apart from the number of simulations, there are three important options in the simulateResiduals function
 
 #### Refit
 
@@ -192,11 +194,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel, refit = T)
 
 * if refit = T, a parametric bootstrap is performed, meaning that the model is refit to the new data, and residuals are created by comparing observed residuals against refitted residuals 
 
-The second option is much much slower, and also seemed to have lower power in some tests I ran. It is therefore not recommended for standard residual diagnostics! I only recommend using it in two situations
-
-1. For running tests that rely on comparing observed to simulated residuals, e.g. the testOverdispersion function (see below), 
-
-2. Or, and this was my original motivation for introducing this option, if one expects that the tested model is biased. A bias could, for example, arise in small data situations, or when estimating models with shrinkage estimators that include a purposeful bias, such as ridge/lasso, random effects or the splines in GAMs. My idea was then that simulated data would not fit to the observations, but that residuals for model fits on simulated data would have the same patterns/bias than model fits on the observed data. 
+The second option is much much slower, and also seemed to have lower power in some tests I ran. ** It is therefore not recommended for standard residual diagnostics!** I only recommend using it if you know what you are doing, and have particular reasons, for example if you estimate that the tested model is biased. A bias could, for example, arise in small data situations, or when estimating models with shrinkage estimators that include a purposeful bias, such as ridge/lasso, random effects or the splines in GAMs. My idea was then that simulated data would not fit to the observations, but that residuals for model fits on simulated data would have the same patterns/bias than model fits on the observed data. 
 
 Note also that refit = T can sometimes run into numerical problems, if the fitted model does not converge on the newly simulated data. 
 
@@ -232,7 +230,7 @@ you can keep using the simulation output as before. Note, hover, that items such
 
 #### Reproducibility notes, random seed and random state
 
-As DHARMa uses simulations to calculate the residuals, a naive implementation of the algorithm would mean that residuals would look slightly different each time a DHARMa calculation is executed. This might only be confusing to a user, but it also bears the danger that one might run the simulation several times and take the result that looks better (which would amount to multiple testing / p-hacking). 
+As DHARMa uses simulations to calculate the residuals, a naive implementation of the algorithm would mean that residuals would look slightly different each time a DHARMa calculation is executed. This might both be confusing and bear the danger that a user would run the simulation several times and take the result that looks better (which would amount to multiple testing / p-hacking). 
 
 By default, DHARMa therefore fixes the random seed to the same value every time a simulation is run, and afterwards restores the random state to the old value. This means that you will get exactly the same residual plot each time. If you want to avoid this behavior, for example for simulation experiments on DHARMa, use seed = NULL -> no seed set, but random state will be restored, or seed = F -> no seed set, and random state will not be restored. Whether or not you fix the seed, the setting for the random seed and the random state are stored in 
 
@@ -244,9 +242,15 @@ If you want to reproduce simualtions for such a run, set the variable .Random.se
 
 Moreover (general advice), to ensure reproducibility, it's advisable to add a set.seed() at the beginning, and a session.info() at the end of your script. The latter will lists the version number of R and all loaded packages.
 
-# Visual diagnostics and tests of common misspecification problems 
+# Interpreting residuals and recognizing misspecification problems 
 
-In all plots / tests that were shown so far, the model was correctly specified, resulting in "perfect" residual plots. In this section, we discuss how to recognize and interpret model misspecifications in the scaled residuals.
+In all plots / tests that were shown so far, the model was correctly specified, resulting in "perfect" residual plots. In this section, we discuss how to recognize and interpret model misspecifications in the scaled residuals. Note, however, that 
+
+1. The fact that none of the here-presented tests shows a misspecification problem doesn't proof that the model is correctly specified. There are likely a large number of structural problems that will not show a pattern in the standard residual plots. 
+
+2. Conversely, while a clear pattern in the residuals indicates with good reliability that the observed data would not be likely to originate from the fitted model, it doesn't neccessarily indicate that the model results are not usuable. There are many cases where it is common practice to work "wrong models". For example, random effect estimates (in particular in GLMMs) are often slightly biased, especially if the model is fit with MLE. For that reason, DHARMa will often show a slight pattern in the residuals even if the model is correctly specified, and tests for this can get significant for large sample sizes. Another example is data that is missing at random (MAR) (see [here](https://github.com/florianhartig/DHARMa/issues/101)). It is know that this phenomenon does not createa bias on the fixed effect estimates, and it is therefore common practice to fit this data with mixed models. Nevertheless, DHARMa recognizes that the observed data looks different than what would be expected from the model assummptions, and flags the model as problemaetic
+  
+**Important conclusion: DHARMa only flags a difference between the observed and expected data - the user has to decide whether this difference is actually a problem for the analysis!**
 
 ## Overdispersion / underdispersion
 
@@ -386,7 +390,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
 ```
 
-### General zero/k-inflation or deficits
+### Testing generic summary statistics, e.g. for k-inflation or deficits
 
 To test for generic excess / deficits of particular values, we have the function testGeneric, which compares the values of a generic, user-provided summary statistics  
 
@@ -507,29 +511,24 @@ testSpatialAutocorrelation(simulationOutput = simulationOutput)
 
 The usual caveats for Moran.I apply, in particular that it may miss non-local and heterogeneous (non-stationary) spatial autocorrelation. The former should be better detectable visually in the spatial plot, or via regressions on the pattern. 
 
-## Custom tests 
-
-A big advantage of the simulations is that you can test any problem that you think you may have. For example, you think you have an excess of tens in your count data? Maybe a faulty measurement instrument that returns too many tens? Just compare the observed with the expected tens from the simulations.
-
-You think your random effect estimates look weird? Run the model with the refit = T option and see how typical random effect estimates look for your problem.
-
-
 # Supported packages 
 
 ## lm and glm
 
-lm and glm are fully supported as specified in the help
+lm and glm and MASS::glm.nb are fully supported.
 
 ## lme4
 
-lme 4 is fully supported as specified in the help
+lme4 model classes are fully supported. 
+
+## mgcv
+
+mgcv is partly supported. Non-standard distributions are not supported, because mgcv doesn't implement a simulate function for those.
 
 ## glmmTMB
 
-Current limitations of glmmTMB
+glmmTMB is partly supported. Current limitations of glmmTMB
 
-* residual function doesn't work with factor response (glmmTMB bug)
-* refit doesn't work with n/k data, because update doesnt' work   
 * pearson residuals don't work with zi terms (not implemented), which limits some of the overdispersion tests
 * Currently, glmmTMB doesn't support the reform argument. 
   * predict() is conditional on all random effects, corresponding to lme4 re.form = NULL
@@ -546,8 +545,11 @@ res = simulateResiduals(m)
 plot(res)
 ```
 
+## spaMM
 
-## Unsupported packages
+spaMM is supported by DHARMa since 0.2.1
+
+## Other packages
 
 See my general comments about [adding new R packages to DHARMa](https://github.com/florianhartig/DHARMa/wiki/Adding-new-R-packages-to-DHARMA)
 
@@ -663,85 +665,49 @@ The overdispersion looks better, but you can see that the residuals look a bit i
 
 Likely, the reason is the steep increase in the beginning that one can see in the raw data plot. One would probably need to apply another transformation or a nonlinear function to completely fit this away.
 
+## Owl example (count data)
 
-## Beetlecount / Poisson example 
+The next examples uses the fairly well known Owl dataset which is provided in glmmTMB (see ?Owls for more info about the data).
 
-
-#### Dataset
-
-
-```{r, echo=F, cache = T}
-altitude = rep(seq(0,1,len = 50), each = 20)
-dataID = 1:1000
-spatialCoordinate = rep(seq(0,30, len = 50), each = 20)
-
-moisture = runif(1000, -1,1)
-deadwood = runif(1000, -1,1)
-
-# random effects + zeroinflation
-plot = rep(1:50, each = 20)
-year = rep(1:20, times = 50)
-
-yearRandom = rnorm(20, 0, 1)
-plotRandom = rnorm(50, 0, 1)
-overdispersion = rnorm(1000, sd = 0.5)
-zeroinflation = rbinom(1000,1,0.6)
-
-beetles <- rpois(1000, exp( 0  + 12*altitude - 12*altitude^2 - 0.2 * moisture + deadwood 
-#  + overdispersion   + plotRandom[plot]
- + yearRandom[year]) * zeroinflation )
-
-data = data.frame(dataID, beetles, altitude, moisture, deadwood, plot, year, spatialCoordinate)
-```
-
-This example is a synthetic dataset of measured beetle counts over 50 plots across an altitudinal gradient that are yearly sampled over 20 years. The following plot shows the observed number of beetles (log10) vs. altitude. Additional variables in the data are soil moisture and the amount of deadwood on the plots. 
+The following shows a sequence of models, all checked with DHARMa. The example is discussed in a talk at ISEC 2018, see slides [here](https://www.slideshare.net/florianhartig/mon-c5hartig2493). 
 
 ```{r}
-par(mfrow = c(1,3))
-plot(log10(beetles) ~ altitude + I(altitude) + moisture, data = data, main = "Beetle counts", xlab = "Altitude")
+
+m1 <- glm(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)), data=Owls , family = poisson)
+res <- simulateResiduals(m1)
+plot(res)
+
+
+m2 <- glmer(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = poisson)
+res <- simulateResiduals(m2)
+plot(res)
+
+
+m3 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = nbinom1)
+res <- simulateResiduals(m3)
+plot(res)
+summary(m3)
+
+plotResiduals(Owls$FoodTreatment, res$scaledResiduals)
+
+testDispersion(res)
+testZeroInflation(res)
+
+m4 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
+summary(m4)
+
+res <- simulateResiduals(m4)
+plot(res)
+
+plotResiduals(Owls$FoodTreatment, res$scaledResiduals)
+
+testDispersion(res)
+testZeroInflation(res)
+
+m5 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), dispformula = ~ FoodTreatment , ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
+summary(m5)
+
 ```
-
-Our question is: what is the effect of altitude on the abundance of the beetle? Let's start with a linear and quadratic term for altitude, linear effect of soil moisture, and random intercepts on plot and year
-
-```{r}
-mod <- glmer(beetles ~ altitude + I(altitude^2) + moisture + (1|plot) + (1|year), data = data, family=poisson, control = glmerControl(optCtrl = list(maxfun = 10000)))
-simulationOutput <- simulateResiduals(fittedModel = mod)
-plot(simulationOutput)
-summary(mod)
-```
-
-We see that we have a problem when we plot residuals against deadwood
-
-```{r, fig.width=4, fig.height=4}
-plotResiduals(data$deadwood, simulationOutput$scaledResiduals)
-```
-
-so let's add this term as well
-
-```{r}
-mod <- glmer(beetles ~ altitude + I(altitude^2) + moisture + deadwood + (1|plot) + (1|year) , data = data, family=poisson, control = glmerControl(optCtrl = list(maxfun = 10000)))
-simulationOutput <- simulateResiduals(fittedModel = mod)
-plot(simulationOutput)
-summary(mod)
-```
-
-still, there is obviously overdispersion in the data, so we'll add an individual level random effect to account for overdispersion
-
-```{r}
-mod <- glmer(beetles ~ altitude + I(altitude^2) + moisture + deadwood + (1|plot) + (1|year) + (1|dataID) , data = data, family=poisson, control = glmerControl(optCtrl = list(maxfun = 10000)))
-simulationOutput <- simulateResiduals(fittedModel = mod)
-plot(simulationOutput)
-```
-
-The data still looks overdispersed. The reason is that there is in fact no standard overdispersion, but zero-inflation in the data. We can look at the excess zeros via
-
-```{r, fig.width=4, fig.height=4}
-testZeroInflation(simulationOutput)
-```
-
-which shows that we have too many zeros. We need a GLMM with zero-inflation. The easiest option is to do this in a Bayesian framework, e.g. in JAGS as in [this example](https://github.com/florianhartig/LearningBayes/blob/master/CommentedCode/04-StandardModels/GLMM/Beetles.md)
-
-To be honest, however, if I hadn’t created the data with zero-inflation myself, I would be hard pressed to say with certainty that zero-inflation is the cause of these residual patterns. The reason is that, if a model is presented with zero-inflated data, the mean model predictions will be drawn towards the zeros, which in turn means that mean model-predictions underestimate the “normal” data. Hence zero-inflation often looks like overdispersion, and seeing such a pattern after accounting for overdispersion might as well mean that the distributional assumptions of the chosen model are not fulfilled (for example because overdispersion is more heavy-tailed than in the chose distribution). The best way to test if the problem is really due to zero-inflation is probably to run model selections (e.g. simulated LRTs) between a number of alternative models, e.g. a zero-inflated GLMM vs. a number of different overdispersed GLMMs.
 
 
 ## Binomial 0/1 data
@@ -756,6 +722,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 ```
 
 A rumor that is true is that, unlike in k/n or count data, such a misspecification will not produce overdispersion. 
+
 ```{r}
 plot(simulationOutput, asFactor = T)
 ```

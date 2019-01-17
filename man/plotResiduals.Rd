@@ -4,8 +4,8 @@
 \alias{plotResiduals}
 \title{Generic residual plot with either spline or quantile regression}
 \usage{
-plotResiduals(pred, residuals = NULL, quantreg = NULL, rank = FALSE,
-  asFactor = FALSE, ...)
+plotResiduals(pred, residuals = NULL, quantreg = NULL, rank = F,
+  asFactor = NULL, ...)
 }
 \arguments{
 \item{pred}{either the predictor variable against which the residuals should be plotted, or a DHARMa object}
@@ -16,15 +16,15 @@ plotResiduals(pred, residuals = NULL, quantreg = NULL, rank = FALSE,
 
 \item{rank}{if T, the values of pred will be rank transformed. This will usually make patterns easier to spot visually, especially if the distribution of the predictor is skewed. If pred is a factor, this has no effect.}
 
-\item{asFactor}{should the predictor variable converted into a factor}
+\item{asFactor}{should the predictor variable be treated as a factor. Default is to choose this for <10 unique predictions, as long as enough predictions are available to draw a boxplot.}
 
-\item{...}{additional arguments to plot}
+\item{...}{additional arguments to plot / boxplot.}
 }
 \description{
 The function creates a generic residual plot with either spline or quantile regression
 }
 \details{
-For a correctly specified model, we would expect uniformity in y direction when plotting against any predictor.
+Plots residuals against a predictor. Outliers are highlighted in red (for more on oultiers, see \code{\link{testOutliers}}). For a correctly specified model, we would expect uniformity in y direction when plotting against any predictor.
 
 To provide a visual aid in detecting deviations from uniformity in y-direction, the plot of the residuals against the predited values also performs an (optional) quantile regression, which provides 0.25, 0.5 and 0.75 quantile lines across the plots. These lines should be straight, horizontal, and at y-values of 0.25, 0.5 and 0.75. Note, however, that some deviations from this are to be expected by chance, even for a perfect model, especially if the sample size is small.
 
@@ -35,7 +35,7 @@ if pred is a factor, a boxplot will be plotted instead of a scatter plot. The di
 }
 \examples{
 testData = createData(sampleSize = 200, family = poisson(), 
-                      randomEffectVariance = 0, numGroups = 5)
+                      randomEffectVariance = 1, numGroups = 5)
 fittedModel <- glm(observedResponse ~ Environment1, 
                    family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
@@ -47,9 +47,11 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
 plot(simulationOutput, quantreg = FALSE)
 
-#############  qq plot  ######################
+#############  Distribution  ######################
 
 plotQQunif(simulationOutput = simulationOutput)
+
+hist(simulationOutput )
 
 #############  residual plots  ###############
 

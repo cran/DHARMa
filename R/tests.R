@@ -7,13 +7,14 @@
 #' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
 #' @author Florian Hartig
 #' @export
-#' @seealso \code{\link{testUniformity}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+#' @seealso \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
 testResiduals <- function(simulationOutput){
   
-  oldpar = par(mfrow = c(1,2))
+  oldpar = par(mfrow = c(1,3))
   out = list()
   out$uniformity = testUniformity(simulationOutput)
   out$dispersion = testDispersion(simulationOutput)
+  out$outliers = testOutliers(simulationOutput)
   
   par(oldpar)
   print(out)
@@ -38,15 +39,65 @@ testSimulatedResiduals <- function(simulationOutput){
 #' This function tests the overall uniformity of the simulated residuals in a DHARMa object
 #' 
 #' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
-#' @param alternative a character string specifying whether the test should test if observations are "greater", "less" or "two.sided" compared to the simulated null hypothesis  
+#' @param alternative a character string specifying whether the test should test if observations are "greater", "less" or "two.sided" compared to the simulated null hypothesis. See \code{\link[stats]{ks.test}} for details  
 #' @param plot if T, plots calls \code{\link{plotQQunif}} as well 
-#' @details The function applies a KS test for uniformity on the simulated residuals
+#' @details The function applies a \code{\link[stats]{ks.test}} for uniformity on the simulated residuals.
 #' @author Florian Hartig
-#' @seealso \code{\link{testResiduals}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+#' @seealso \code{\link{testResiduals}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
 #' @export
 testUniformity<- function(simulationOutput, alternative = c("two.sided", "less", "greater"), plot = T){
   out <- suppressWarnings(ks.test(simulationOutput$scaledResiduals, 'punif', alternative = alternative))
   if(plot == T) plotQQunif(simulationOutput = simulationOutput)
+  return(out)
+}
+
+#' Test for outliers 
+#' 
+#' This function tests if the number of observations that are strictly greater / smaller than all simulations are larger than expected 
+#' 
+#' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
+#' @param alternative a character string specifying whether the test should test if observations are "greater", "less" or "two.sided" compared to the simulated null hypothesis  
+#' @param plot if T, the function will create an additional plot
+#' @details DHARMa residuals are created by simulating from the fitted model, and comparing the simulated values to the observed data. It can occur that all simulated values are higher or smaller than the observed data, in which case they get the residual value of 0 and 1, respectively. I refer to these values as simulation outliers, or simply outliers. 
+#' 
+#' Because no data was simulated in the range of the observed value, we actually don't know "how much" these values deviate from the model expecation, so the term "outlier" should be used with a grain of salt - it's not a judgement about the probability of a deviation from an expectation, but denotes that we are outside the simulated range. The number of outliers would usually decrease if the number of DHARMa simulations is increased. 
+#'  
+#' The probability of an outlier depends on the number of simulations (in fact, it is 1/(nSim +1) for each side), so whether the existence of outliers is a reason for concern depends also on the number of simulations. The expected number of outliers is therefore binomially distributed, and we can calculate a p-value from that
+#' 
+#' 
+#' @author Florian Hartig
+#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+#' @export
+testOutliers <- function(simulationOutput, alternative = c("two.sided", "greater", "less"), plot = T){
+
+  alternative <- match.arg(alternative)
+  
+  out = list()  
+  out$alternative = alternative
+  out$method = "DHARMa outlier test based on exact binomial test"
+
+  outLow = sum(simulationOutput$scaledResiduals == 0)
+  outHigh = sum(simulationOutput$scaledResiduals == 1)
+  trials = simulationOutput$nObs 
+  outFreqH0 = 1/(simulationOutput$nSim +1)
+  
+  out$testlow = binom.test(outLow, trials, p = outFreqH0, alternative = "less")
+  out$testhigh = binom.test(outHigh, trials, p = outFreqH0, alternative = "greater")
+
+  out$statistic = c(outLow = outLow, outHigh = outHigh, nobs = trials, freqH0 = outFreqH0)
+  
+  if(alternative == "greater") p = out$testlow$p.value
+  if(alternative == "less") p = out$testhigh$p.value
+  if(alternative == "two.sided") p = min(min(out$testlow$p.value, out$testhigh$p.value) * 2,1)    
+  
+  out$p.value = p
+  out$data.name = deparse(substitute(simulationOutput))
+  class(out) = "htest"  
+  
+  if(plot == T) {
+    hist(simulationOutput)
+    
+  } 
   return(out)
 }
 
@@ -66,7 +117,7 @@ testUniformity<- function(simulationOutput, alternative = c("two.sided", "less",
 #' If refit = T, the function compares the approximate deviance (via squared pearson residuals) with the same quantity from the models refitted with simulated data. It is much slower than the parametric alternative \code{\link{testOverdispersionParametric}}, but simulations show that it is slightly more powerful than the latter, and more powerful than any other non-parametric test in DHARMa, and it doesn't make any parametric assumptions. However, given the computational cost, I would suggest that most users will be satisfied with the parametric overdispersion test. 
 #' 
 #' @author Florian Hartig
-#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}},  \code{\link{testOutliers}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
 #' @example inst/examples/testsHelp.R
 #' @export
 testDispersion <- function(simulationOutput, alternative = c("two.sided", "greater", "less"), plot = T, ...){
@@ -115,7 +166,7 @@ testDispersion <- function(simulationOutput, alternative = c("two.sided", "great
 #' @param ... additional arguments to \code{\link{testDispersion}}
 #' @export
 testOverdispersion <- function(simulationOutput, ...){
-  message("plotSimulatedResiduals is deprecated, switch your code to using the testDispersion function")
+  message("testOverdispersion is deprecated, switch your code to using the testDispersion function")
   testDispersion(simulationOutput, ...)
 }
 
@@ -140,7 +191,7 @@ testOverdispersionParametric <- function(...){
 #' @details shows the expected distribution of zeros against the observed
 #' @author Florian Hartig
 #' @example inst/examples/testsHelp.R
-#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testDispersion}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
 #' @export
 testZeroInflation <- function(simulationOutput, ...){
   countZeros <- function(x) sum( x == 0)
@@ -166,7 +217,7 @@ testZeroInflation <- function(simulationOutput, ...){
 #' @author Florian Hartig
 #' @example inst/examples/testsHelp.R
 #' 
-#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
 testGeneric <- function(simulationOutput, summary, alternative = c("two.sided", "greater", "less"), plot = T, methodName = "DHARMa generic simulation test"){
   
   alternative <- match.arg(alternative)
@@ -207,10 +258,12 @@ testGeneric <- function(simulationOutput, summary, alternative = c("two.sided", 
 #' @note The sense of being able to run the test with time = NULL (random values) is to test the rate of false positives under the current residual structure (random time corresponds to H0: no spatial autocorrelation), e.g. to check if the test has noninal error rates for particular residual structures (note that Durbin-Watson originally assumes normal residuals, error rates seem correct for uniform residuals, but may not be correct if there are still other residual problems).
 #' @details The function performs a Durbin-Watson test on the uniformly scaled residuals, and plots the residuals against time. The DB test was originally be designed for normal residuals. In simulations, I didn't see a problem with this setting though. The alternative is to transform the uniform residuals to normal residuals and perform the DB test on those.
 #' @author Florian Hartig
-#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testSpatialAutocorrelation}}
+#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testSpatialAutocorrelation}}
 #' @example inst/examples/testTemporalAutocorrelationHelp.R
 #' @export
 testTemporalAutocorrelation <- function(simulationOutput, time = NULL , alternative = c("two.sided", "greater", "less"), plot = T){
+  # actually not sure if this is neccessary for dwtest, but seems better to aggregate
+  if(any(duplicated(time))) stop("testing for temporal autocorrelation requires unique time values - if you have several observations per location, use the recalculateResiduals function to aggregate residuals per location")
   
   alternative <- match.arg(alternative)
   
@@ -232,7 +285,7 @@ testTemporalAutocorrelation <- function(simulationOutput, time = NULL , alternat
 #' 
 #' @param simulationOutput a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}
 #' @param x the x coordinate, in the same order as the data points. If not provided, random values will be created
-#' @param y the x coordinate, in the same order as the data points. If not provided, random values will be created
+#' @param y the y coordinate, in the same order as the data points. If not provided, random values will be created
 #' @param distMat optional distance matrix. If not provided, a distance matrix will be calculated based on x and y. See details for explanation
 #' @param alternative a character string specifying whether the test should test if observations are "greater", "less" or "two.sided" compared to the simulated null hypothesis  
 #' @param plot whether to plot output
@@ -244,11 +297,13 @@ testTemporalAutocorrelation <- function(simulationOutput, time = NULL , alternat
 #' The sense of being able to run the test with x/y = NULL (random values) is to test the rate of false positives under the current residual structure (random x/y corresponds to H0: no spatial autocorrelation), e.g. to check if the test has noninal error rates for particular residual structures.
 #' 
 #' @author Florian Hartig
-#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}} 
+#' @seealso \code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}} 
 #' @import grDevices
 #' @example inst/examples/testSpatialAutocorrelationHelp.R
 #' @export
 testSpatialAutocorrelation <- function(simulationOutput, x = NULL, y  = NULL, distMat = NULL, alternative = c("two.sided", "greater", "less"), plot = T){
+  
+  if(any(duplicated(cbind(x,y)))) stop("testing for spatial autocorrelation requires unique x,y values - if you have several observations per location, use the recalculateResiduals function to aggregate residuals per location")
   
   alternative <- match.arg(alternative)
 

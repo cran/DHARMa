@@ -1,4 +1,4 @@
-## ---- echo = F-----------------------------------------------------------
+## ---- echo = F, message = F----------------------------------------------
 library(DHARMa)
 set.seed(123)
 
@@ -42,8 +42,8 @@ plot(simulationOutput)
 ## ---- eval = F-----------------------------------------------------------
 #  plotResiduals(YOURPREDICTOR, simulationOutput$scaledResiduals)
 
-## ------------------------------------------------------------------------
-testUniformity(simulationOutput = simulationOutput)
+## ---- eval = F-----------------------------------------------------------
+#  testResiduals(simulationOutput)
 
 ## ---- eval = F-----------------------------------------------------------
 #  ?simulateResiduals
@@ -250,55 +250,42 @@ simulationOutput <- simulateResiduals(fittedModel = mod2)
 plot(simulationOutput)
 
 
-## ---- echo=F, cache = T--------------------------------------------------
-altitude = rep(seq(0,1,len = 50), each = 20)
-dataID = 1:1000
-spatialCoordinate = rep(seq(0,30, len = 50), each = 20)
-
-moisture = runif(1000, -1,1)
-deadwood = runif(1000, -1,1)
-
-# random effects + zeroinflation
-plot = rep(1:50, each = 20)
-year = rep(1:20, times = 50)
-
-yearRandom = rnorm(20, 0, 1)
-plotRandom = rnorm(50, 0, 1)
-overdispersion = rnorm(1000, sd = 0.5)
-zeroinflation = rbinom(1000,1,0.6)
-
-beetles <- rpois(1000, exp( 0  + 12*altitude - 12*altitude^2 - 0.2 * moisture + deadwood 
-#  + overdispersion   + plotRandom[plot]
- + yearRandom[year]) * zeroinflation )
-
-data = data.frame(dataID, beetles, altitude, moisture, deadwood, plot, year, spatialCoordinate)
-
 ## ------------------------------------------------------------------------
-par(mfrow = c(1,3))
-plot(log10(beetles) ~ altitude + I(altitude) + moisture, data = data, main = "Beetle counts", xlab = "Altitude")
 
-## ------------------------------------------------------------------------
-mod <- glmer(beetles ~ altitude + I(altitude^2) + moisture + (1|plot) + (1|year), data = data, family=poisson, control = glmerControl(optCtrl = list(maxfun = 10000)))
-simulationOutput <- simulateResiduals(fittedModel = mod)
-plot(simulationOutput)
-summary(mod)
+m1 <- glm(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)), data=Owls , family = poisson)
+res <- simulateResiduals(m1)
+plot(res)
 
-## ---- fig.width=4, fig.height=4------------------------------------------
-plotResiduals(data$deadwood, simulationOutput$scaledResiduals)
 
-## ------------------------------------------------------------------------
-mod <- glmer(beetles ~ altitude + I(altitude^2) + moisture + deadwood + (1|plot) + (1|year) , data = data, family=poisson, control = glmerControl(optCtrl = list(maxfun = 10000)))
-simulationOutput <- simulateResiduals(fittedModel = mod)
-plot(simulationOutput)
-summary(mod)
+m2 <- glmer(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = poisson)
+res <- simulateResiduals(m2)
+plot(res)
 
-## ------------------------------------------------------------------------
-mod <- glmer(beetles ~ altitude + I(altitude^2) + moisture + deadwood + (1|plot) + (1|year) + (1|dataID) , data = data, family=poisson, control = glmerControl(optCtrl = list(maxfun = 10000)))
-simulationOutput <- simulateResiduals(fittedModel = mod)
-plot(simulationOutput)
 
-## ---- fig.width=4, fig.height=4------------------------------------------
-testZeroInflation(simulationOutput)
+m3 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = nbinom1)
+res <- simulateResiduals(m3)
+plot(res)
+summary(m3)
+
+plotResiduals(Owls$FoodTreatment, res$scaledResiduals)
+
+testDispersion(res)
+testZeroInflation(res)
+
+m4 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
+summary(m4)
+
+res <- simulateResiduals(m4)
+plot(res)
+
+plotResiduals(Owls$FoodTreatment, res$scaledResiduals)
+
+testDispersion(res)
+testZeroInflation(res)
+
+m5 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), dispformula = ~ FoodTreatment , ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
+summary(m5)
+
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = 5, family = binomial(), randomEffectVariance = 3, numGroups = 25)

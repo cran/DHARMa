@@ -4,13 +4,10 @@
 \alias{createDHARMa}
 \title{Convert simulated residuals or posterior predictive simulations to a DHARMa object}
 \usage{
-createDHARMa(scaledResiduals = NULL, simulatedResponse = NULL,
-  observedResponse = NULL, fittedPredictedResponse = NULL,
-  integerResponse = F)
+createDHARMa(simulatedResponse, observedResponse,
+  fittedPredictedResponse = NULL, integerResponse = F)
 }
 \arguments{
-\item{scaledResiduals}{optional scaled residuals from a simulation, e.g. Bayesian p-values. If those are not provided, simulated and true observations have to be provided.}
-
 \item{simulatedResponse}{matrix of observations simulated from the fitted model - row index for observations and colum index for simulations}
 
 \item{observedResponse}{true observations}
@@ -29,6 +26,35 @@ The use of this function is to convert simulated residuals (e.g. from a point es
 Either scaled residuals or (simulatedResponse AND observed response) have to be provided
 }
 \examples{
+## READING IN HAND-CODED SIMULATIONS
+
+testData = createData(sampleSize = 50, randomEffectVariance = 0)
+fittedModel <- glm(observedResponse ~ Environment1, data = testData, family = "poisson")
+
+# in DHARMA, using the simulate.glm function of glm 
+sims = simulateResiduals(fittedModel)
+plot(sims, quantreg = FALSE)
+
+# Doing the same with a handcode simulate function. 
+# of course this code will only work with a 1-par glm model
+simulateMyfit <- function(n=10, fittedModel){
+  int = coef(fittedModel)[1]
+  slo = coef(fittedModel)[2]
+  pred = exp(int + slo * testData$Environment1)
+  predSim = replicate(n, rpois(length(pred), pred))
+  return(predSim)
+}
+
+sims = simulateMyfit(250, fittedModel)
+
+dharmaRes <- createDHARMa(simulatedResponse = sims, 
+                          observedResponse = testData$observedResponse, 
+                          fittedPredictedResponse = predict(fittedModel, type = "response"), 
+                          integer = TRUE)
+plot(dharmaRes, quantreg = FALSE)
+
+## A BAYESIAN EXAMPLE
+
 \dontrun{
   
   # This example shows how to check the residuals for a 

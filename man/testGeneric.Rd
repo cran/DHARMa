@@ -4,8 +4,9 @@
 \alias{testGeneric}
 \title{Generic simulation test of a summary statistic}
 \usage{
-testGeneric(simulationOutput, summary, alternative = c("two.sided", "greater",
-  "less"), plot = T, methodName = "DHARMa generic simulation test")
+testGeneric(simulationOutput, summary, alternative = c("two.sided",
+  "greater", "less"), plot = T,
+  methodName = "DHARMa generic simulation test")
 }
 \arguments{
 \item{simulationOutput}{a DHARMa object with simulated residuals created with \code{\link{simulateResiduals}}}
@@ -79,7 +80,7 @@ testDispersion(simulationOutput)
 
 }
 \seealso{
-\code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+\code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
 }
 \author{
 Florian Hartig
