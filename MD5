@@ -1,6 +1,6 @@
-974f5ff76b05cc9dfcd82aa3d759e448 *DESCRIPTION
+9ed700a03b8a9c4d30dac47cb71a69f0 *DESCRIPTION
 0699cb7a5d97cf3f648e57ef4e0c30db *NAMESPACE
-9a2af52a1b7f4076c2388e54d07d6b37 *NEWS
+4d8808963fd308861ec37d54ca122c21 *NEWS
 327731891da91ed0fd467709d41edd78 *R/DHARMa.R
 241fc02996f7d4325fae44ff430e5b46 *R/compatibility.R
 7902e4fc8361688a07fe5176943927c3 *R/createData.R
@@ -14,8 +14,8 @@ c71d606bf8d85559c5258617c9fb86f7 *R/tests.R
 f042ce5d1ee27bcc5c8936a9a7db99d9 *README.md
 8d3d2c57715bdf52afa00b04c4443ae6 *build/vignette.rds
 c24c53c4cbc125912eb0a01eb4d76090 *inst/doc/DHARMa.R
-a187d2e34e6d120b711c4d03ece302ee *inst/doc/DHARMa.Rmd
-7acc2b1cff7dc1478d2a8c994ec01764 *inst/doc/DHARMa.html
+968655b2f9c2e76350200ac94185c08f *inst/doc/DHARMa.Rmd
+7e7566d19b3192750bf46192acc2c7b2 *inst/doc/DHARMa.html
 157bf049ccdb1f599ae11ddcf143aae2 *inst/examples/createDataHelp.R
 1d0021871fd8df5c1d12b94d8132dd40 *inst/examples/createDharmaHelp.R
 1ec722c0b49d1ee09c6e8853c7f00d24 *inst/examples/getRandomStateHelp.R
@@ -71,6 +71,6 @@ a3059d01dc39fbe1492fbef1ea14b388 *tests/testthat/testCreateDharma.R
 2e29313488df3d582701f234c935ab50 *tests/testthat/testPlots.R
 1dfd5add84f82fb53a145e76a583b022 *tests/testthat/testRecalculateResiduals.R
 c135f7ca9b0d991ce28397c2c53455ef *tests/testthat/testTests.R
-a187d2e34e6d120b711c4d03ece302ee *vignettes/DHARMa.Rmd
+968655b2f9c2e76350200ac94185c08f *vignettes/DHARMa.Rmd
 2e9ebf8d3e62710ad6ccb5fcc48a02ce *vignettes/ECDFmotivation.png
 eca10d3f08e6268504c3e4d52bca8978 *vignettes/Overdispersion.png
