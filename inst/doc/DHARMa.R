@@ -77,9 +77,11 @@ summary(fittedModel)
 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
+
+## ----fig.width=4.5, fig.height=4.5---------------------------------------
 testUniformity(simulationOutput = simulationOutput)
 
-## ----overDispersionTest, echo = T----------------------------------------
+## ----overDispersionTest, echo = T, fig.width=4.5, fig.height=4.5---------
 
 # Option 2
 testDispersion(simulationOutput)
@@ -114,7 +116,7 @@ summary(fittedModel)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
 
-## ------------------------------------------------------------------------
+## ---- fig.width=4.5, fig.height=4.5--------------------------------------
 countOnes <- function(x) sum(x == 1)  # testing for number of 1s
 testGeneric(simulationOutput, summary = countOnes, alternative = "greater") # 1-inflation
 
@@ -171,7 +173,7 @@ fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), data = testDat
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
 
-## ---- fig.width=4, fig.height=4------------------------------------------
+## ---- fig.width=4.5, fig.height=4.5--------------------------------------
 testSpatialAutocorrelation(simulationOutput = simulationOutput, x = testData$x, y= testData$y)
 testSpatialAutocorrelation(simulationOutput = simulationOutput)
 
@@ -238,10 +240,10 @@ mod1 <- glm(cbind(N_parasitized, N_adult) ~ logDensity, data = data, family=bino
 simulationOutput <- simulateResiduals(fittedModel = mod1)
 plot(simulationOutput)
 
-## ------------------------------------------------------------------------
+## ---- fig.width=4.5, fig.height=4.5--------------------------------------
 testUniformity(simulationOutput = simulationOutput)
 
-## ------------------------------------------------------------------------
+## ---- fig.width=4.5, fig.height=4.5--------------------------------------
 testOverdispersion(simulationOutput = simulationOutput)
 
 ## ------------------------------------------------------------------------
