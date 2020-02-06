@@ -1,8 +1,8 @@
 Package: DHARMa
 Title: Residual Diagnostics for Hierarchical (Multi-Level / Mixed)
         Regression Models
-Version: 0.2.6
-Date: 2019-11-24
+Version: 0.2.7
+Date: 2020-02-08
 Authors@R: c(person("Florian", "Hartig", email = "florian.hartig@biologie.uni-regensburg.de", role = c("aut", "cre"), comment=c(ORCID="0000-0002-6255-9059")))
 Description: The 'DHARMa' package uses a simulation-based approach to create
     readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed
@@ -18,8 +18,8 @@ Description: The 'DHARMa' package uses a simulation-based approach to create
 Depends: R (>= 3.0.2)
 Imports: stats, graphics, utils, grDevices, parallel, doParallel,
         foreach, gap, qrnn, lmtest, ape, sfsmisc, MASS, lme4, mgcv,
-        glmmTMB (>= 0.2.1), spaMM (>= 2.6.0)
-Suggests: knitr, testthat
+        glmmTMB (>= 1.0.0), spaMM (>= 2.6.0)
+Suggests: knitr, testthat, KernSmooth
 License: GPL (>= 3)
 URL: http://florianhartig.github.io/DHARMa/
 BugReports: https://github.com/florianhartig/DHARMa/issues
@@ -28,8 +28,8 @@ RoxygenNote: 6.1.1
 VignetteBuilder: knitr
 Encoding: UTF-8
 NeedsCompilation: no
-Packaged: 2019-11-26 15:28:30 UTC; florian
+Packaged: 2020-02-06 15:22:43 UTC; florian
 Author: Florian Hartig [aut, cre] (<https://orcid.org/0000-0002-6255-9059>)
 Maintainer: Florian Hartig <florian.hartig@biologie.uni-regensburg.de>
 Repository: CRAN
-Date/Publication: 2019-11-26 20:50:02 UTC
+Date/Publication: 2020-02-06 20:00:02 UTC
