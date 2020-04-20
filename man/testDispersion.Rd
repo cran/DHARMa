@@ -24,32 +24,43 @@ The function implements two tests, depending on whether it is applied on a simul
 
 If refit = F, the function tests the sd of the data against the sd of the simulated data. 
 
-If refit = T, the function compares the approximate deviance (via squared pearson residuals) with the same quantity from the models refitted with simulated data. Applying this is much slower than the previous alternative, but simulations show that it is slightly more powerful as well. 
-
-However, given the computational cost, I would suggest that most users will be satisfied with the standard dispersion test.
+If refit = T, the function compares the approximate deviance (via squared pearson residuals) with the same quantity from the models refitted with simulated data. Applying this is much slower than the previous alternative, but simulations show that it is slightly more powerful as well. However, given the computational cost, I would suggest that most users will be satisfied with the standard dispersion test.
+}
+\note{
+The dispersion test can be quite different if it is evaluate on conditional or unconditional simulations (see \code{\link{simulateResiduals}}). The default in DHARMa is to use unconditional simulations, but I recommend trying both.
 }
 \examples{
-# creating test data
-
 testData = createData(sampleSize = 200, overdispersion = 0.5, randomEffectVariance = 0)
 fittedModel <- glm(observedResponse ~ Environment1 , family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
-plot(simulationOutput, quantreg = FALSE)
+# the plot function runs 4 tests
+# i) KS test i) Dispersion test iii) Outlier test iv) quantile test
+plot(simulationOutput, quantreg = TRUE)
 
-###### Distribution tests #####
-
-testUniformity(simulationOutput)
-
-###### Dispersion tests #######
-
-testDispersion(simulationOutput, alternative = "less") # underdispersion
-
-###### Both together###########
-
+# testResiduals tests distribution, dispersion and outliers
 testResiduals(simulationOutput)
 
-###### Special tests ##########
+####### Individual tests #######
+
+# KS test for correct distribution of residuals
+testUniformity(simulationOutput)
+
+# Dispersion test
+testDispersion(simulationOutput) # tests under and overdispersion
+testDispersion(simulationOutput, alternative = "less") # only underdispersion
+testDispersion(simulationOutput, alternative = "less") # only underdispersion
+
+# if model is refitted, a different test will be called
+simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, refit = TRUE, seed = 12)
+testDispersion(simulationOutput2)
+
+# often useful to test dispersion per group (e.g. binomial data, see vignette)
+simulationOutput3 = recalculateResiduals(simulationOutput, group = testData$group)
+testDispersion(simulationOutput3)
+
+# Outlier test (number of observations outside simulation envelope)
+testOutliers(simulationOutput) 
 
 # testing zero inflation
 testZeroInflation(simulationOutput)
@@ -65,22 +76,12 @@ testGeneric(simulationOutput, summary = means)
 spread <- function(x) sd(x) # testing if mean sd fits
 testGeneric(simulationOutput, summary = spread) 
 
-###### Refited ##############
 
-# if model is refitted, a different test will be called
-
-simulationOutput <- simulateResiduals(fittedModel = fittedModel, refit = TRUE, seed = 12)
-testDispersion(simulationOutput)
-
-###### Test per group ##############
-
-simulationOutput = recalculateResiduals(simulationOutput, group = testData$group)
-testDispersion(simulationOutput)
 
 
 }
 \seealso{
-\code{\link{testResiduals}}, \code{\link{testUniformity}},  \code{\link{testOutliers}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}
+\code{\link{testResiduals}}, \code{\link{testUniformity}},  \code{\link{testOutliers}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testQuantiles}}
 }
 \author{
 Florian Hartig

@@ -1,5 +1,26 @@
 NOTE: for more news about the package, see https://github.com/florianhartig/DHARMa/releases
 
+
+DHARMa 0.3.0
+============
+
+New features
+
+- quantile regressions switched to qgam, which also calculates p-values on the quantile estimates
+- new testQuantiles function, based on the qgam quantile regressions
+
+Changes
+
+- syntax change for plotResiduals, see ?plotResiduals
+- transformQuantiles is deprecated, functionality included in residuals()
+- nearly all functions can now also be called directly with a fitted model (for computational efficiency, however, it is still recommended to calculate the residuals first)
+- qqPlot now shows disribution, dispersion and outlier test
+
+Bugfixes
+
+- bugfix #158 for fitting glmmTMB binomial with proportions 
+
+
 DHARMa 0.2.7
 ============
 
