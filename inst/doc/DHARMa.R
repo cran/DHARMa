@@ -1,9 +1,9 @@
+## ----global_options, include=FALSE---------------------------------------
+knitr::opts_chunk$set(fig.width=8.5, fig.height=5.5, fig.align='center', warning=FALSE, message=FALSE, cache = T)
+
 ## ---- echo = F, message = F----------------------------------------------
 library(DHARMa)
 set.seed(123)
-
-## ----global_options, include=FALSE---------------------------------------
-knitr::opts_chunk$set(fig.width=7, fig.height=4.5, fig.align='center', warning=FALSE, message=FALSE, cache = F)
 
 ## ---- echo = F, fig.width=8, fig.height=3.5------------------------------
 library(lme4)
@@ -31,15 +31,14 @@ citation("DHARMa")
 testData = createData(sampleSize = 250)
 fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , family = "poisson", data = testData)
 
-## ------------------------------------------------------------------------
+## ---- fig.show='hide'----------------------------------------------------
 testDispersion(fittedModel)
 
-## ------------------------------------------------------------------------
-# get residuals
-simulationOutput <- simulateResiduals(fittedModel = fittedModel, n = 250)
+## ---- fig.show='hide'----------------------------------------------------
+simulationOutput <- simulateResiduals(fittedModel = fittedModel, plot = T)
 
-## ---- eval = F-----------------------------------------------------------
-#  residuals(simulationOutput)
+## ---- results = "hide"---------------------------------------------------
+residuals(simulationOutput)
 
 ## ---- eval = F-----------------------------------------------------------
 #  residuals(simulationOutput, quantileFunction = qnorm, outlierValues = c(-7,7))
@@ -76,8 +75,8 @@ plot(simulationOutput)
 #  simulationOutput$randomState
 
 ## ------------------------------------------------------------------------
-testData = createData(sampleSize = 500, overdispersion = 2, family = poisson())
-fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , family = "poisson", data = testData)
+testData = createData(sampleSize = 200, overdispersion = 1.5, family = poisson())
+fittedModel <- glm(observedResponse ~  Environment1 , family = "poisson", data = testData)
 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
@@ -86,15 +85,8 @@ plot(simulationOutput)
 testData = createData(sampleSize = 500, intercept=0, fixedEffects = 2, overdispersion = 0, family = poisson(), roundPoissonVariance = 0.001, randomEffectVariance = 0)
 fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , family = "poisson", data = testData)
 
-summary(fittedModel)
-
-# plotConventionalResiduals(fittedModel)
-
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
-
-## ----fig.width=4.5, fig.height=4.5---------------------------------------
-testUniformity(simulationOutput = simulationOutput)
 
 ## ----overDispersionTest, echo = T, fig.width=4.5, fig.height=4.5---------
 
@@ -142,9 +134,8 @@ fittedModel <- glm(observedResponse ~ Environment1 , family = "poisson", data = 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
 
-## ------------------------------------------------------------------------
-testQuantiles(simulationOutput)
-plotResiduals(simulationOutput)
+## ---- eval = F-----------------------------------------------------------
+#  testQuantiles(simulationOutput)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, intercept = 0, overdispersion = function(x){return(rnorm(length(x), sd = 2*abs(x)))}, family = poisson(), randomEffectVariance = 0)
@@ -164,7 +155,7 @@ fittedModel <- glmer(observedResponse ~ Environment1 + Environment2 + (1|group) 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 # plotConventionalResiduals(fittedModel)
 plot(simulationOutput, quantreg = T)
-testUniformity(simulationOutput = simulationOutput)
+# testUniformity(simulationOutput = simulationOutput)
 
 ## ------------------------------------------------------------------------
 par(mfrow = c(1,2))
@@ -178,9 +169,8 @@ fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), data = testDat
 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
-## ---- fig.width=4, fig.height=4------------------------------------------
+## ------------------------------------------------------------------------
 testTemporalAutocorrelation(simulationOutput = simulationOutput, time = testData$time)
-testTemporalAutocorrelation(simulationOutput = simulationOutput)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 100, family = poisson(), spatialAutocorrelation = 5)
@@ -192,7 +182,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
 ## ---- fig.width=4.5, fig.height=4.5--------------------------------------
 testSpatialAutocorrelation(simulationOutput = simulationOutput, x = testData$x, y= testData$y)
-testSpatialAutocorrelation(simulationOutput = simulationOutput)
+# testSpatialAutocorrelation(simulationOutput = simulationOutput) # again, this uses random x,y
 
 ## ---- echo = F-----------------------------------------------------------
 data = structure(list(N_parasitized = c(226, 689, 481, 960, 1177, 266, 
@@ -220,8 +210,9 @@ data = structure(list(N_parasitized = c(226, 689, 481, 960, 1177, 266,
 
 data$logDensity = log10(data$density.attack+1)
 
-## ---- fig.width=4, fig.height=4------------------------------------------
-plot(N_parasitized / (N_adult + N_parasitized ) ~ logDensity, xlab = "Density", ylab = "Proportion infected", data = data)
+## ---- fig.width=5, fig.height=5------------------------------------------
+plot(N_parasitized / (N_adult + N_parasitized ) ~ logDensity, 
+     xlab = "Density", ylab = "Proportion infected", data = data)
 
 ## ------------------------------------------------------------------------
 mod1 <- glm(cbind(N_parasitized, N_adult) ~ logDensity, data = data, family=binomial)
@@ -242,41 +233,41 @@ plot(simulationOutput)
 anova(mod2, mod3)
 
 ## ------------------------------------------------------------------------
-
 m1 <- glm(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)), data=Owls , family = poisson)
 res <- simulateResiduals(m1)
 plot(res)
 
-
+## ------------------------------------------------------------------------
 m2 <- glmer(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = poisson)
 res <- simulateResiduals(m2)
 plot(res)
 
-
+## ------------------------------------------------------------------------
 m3 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = nbinom1)
-res <- simulateResiduals(m3)
-plot(res)
-summary(m3)
 
+res <- simulateResiduals(m3, plot = T)
+par(mfrow = c(1,3))
 plotResiduals(res, Owls$FoodTreatment)
-
 testDispersion(res)
 testZeroInflation(res)
 
+## ------------------------------------------------------------------------
 m4 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
-summary(m4)
 
-res <- simulateResiduals(m4)
-plot(res)
-
+res <- simulateResiduals(m4, plot = T)
+par(mfrow = c(1,3))
 plotResiduals(res, Owls$FoodTreatment)
-
 testDispersion(res)
 testZeroInflation(res)
 
+## ------------------------------------------------------------------------
 m5 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), dispformula = ~ FoodTreatment , ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
-summary(m5)
 
+res <- simulateResiduals(m4, plot = T)
+par(mfrow = c(1,3))
+plotResiduals(res, Owls$FoodTreatment)
+testDispersion(res)
+testZeroInflation(res)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = 5, family = binomial(), randomEffectVariance = 3, numGroups = 25)
@@ -296,7 +287,6 @@ testDispersion(simulationOutput)
 
 simulationOutput = recalculateResiduals(simulationOutput , group = testData$group)
 testDispersion(simulationOutput)
-
 
 ## ---- eval = T-----------------------------------------------------------
 testData = createData(sampleSize = 200, overdispersion = 0.5, family = poisson())
