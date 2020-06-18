@@ -1,8 +1,8 @@
 Package: DHARMa
 Title: Residual Diagnostics for Hierarchical (Multi-Level / Mixed)
         Regression Models
-Version: 0.3.1
-Date: 2020-05-10
+Version: 0.3.2.0
+Date: 2020-06-18
 Authors@R: c(person("Florian", "Hartig", email = "florian.hartig@biologie.uni-regensburg.de", role = c("aut", "cre"), comment=c(ORCID="0000-0002-6255-9059")))
 Description: The 'DHARMa' package uses a simulation-based approach to create
     readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed
@@ -28,8 +28,8 @@ RoxygenNote: 7.0.2.9000
 VignetteBuilder: knitr
 Encoding: UTF-8
 NeedsCompilation: no
-Packaged: 2020-05-11 21:03:03 UTC; florian
+Packaged: 2020-06-18 20:34:11 UTC; florian
 Author: Florian Hartig [aut, cre] (<https://orcid.org/0000-0002-6255-9059>)
 Maintainer: Florian Hartig <florian.hartig@biologie.uni-regensburg.de>
 Repository: CRAN
-Date/Publication: 2020-05-12 06:20:02 UTC
+Date/Publication: 2020-06-18 21:20:06 UTC
