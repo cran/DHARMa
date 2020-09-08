@@ -233,6 +233,10 @@ plot(simulationOutput)
 anova(mod2, mod3)
 
 ## ------------------------------------------------------------------------
+AIC(mod2) 
+AIC(mod3)
+
+## ------------------------------------------------------------------------
 m1 <- glm(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)), data=Owls , family = poisson)
 res <- simulateResiduals(m1)
 plot(res)
@@ -287,6 +291,50 @@ testDispersion(simulationOutput)
 
 simulationOutput = recalculateResiduals(simulationOutput , group = testData$group)
 testDispersion(simulationOutput)
+
+## ------------------------------------------------------------------------
+set.seed(123)
+
+# created data and fit with a missing predictor (Environment2)
+
+testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = c(1,3), family = binomial(), randomEffectVariance = 3, numGroups = 50)
+fittedModel <- glm(observedResponse ~ Environment1, family = "binomial", data = testData)
+
+res <- simulateResiduals(fittedModel = fittedModel)
+plot(res)
+
+# grouping according to RE produces overdispersion because RE is missing in the model 
+
+res2 = recalculateResiduals(res , group = testData$group)
+plot(res2)
+
+# grouping according to random factor does not produce an effect, wrt. to this the model has correct dispersion
+
+grouping = as.factor(sample.int(50, 500, replace = T))
+
+res2 = recalculateResiduals(res , group = grouping)
+plot(res2)
+
+# grouping according to response doesn't create a pattern
+
+x = predict(fittedModel)
+grouping = cut(x, breaks = quantile(x, seq(0,1,0.02)))
+res2 = recalculateResiduals(res , group = grouping)
+plot(res2)
+
+# grouping according to missing variable creates pattern, because wrt. to this variable, the model is overdispersed
+
+x = testData$Environment2
+grouping = cut(x, breaks = quantile(x, seq(0,1,0.02)))
+res2 = recalculateResiduals(res , group = grouping)
+plot(res2)
+
+# grouping according to space does not create a pattern, because there is no missing spatial predictor
+
+x = testData$x
+grouping = cut(x, breaks = quantile(x, seq(0,1,0.02)))
+res3 = recalculateResiduals(res , group = grouping)
+plot(res3)
 
 ## ---- eval = T-----------------------------------------------------------
 testData = createData(sampleSize = 200, overdispersion = 0.5, family = poisson())

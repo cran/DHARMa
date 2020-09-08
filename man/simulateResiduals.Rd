@@ -4,13 +4,14 @@
 \alias{simulateResiduals}
 \title{Create simulated residuals}
 \usage{
-simulateResiduals(fittedModel, n = 250, refit = F, integerResponse = NULL,
-  plot = F, seed = 123, method = c("PIT", "traditional"), ...)
+simulateResiduals(fittedModel, n = 250, refit = F,
+  integerResponse = NULL, plot = F, seed = 123, method = c("PIT",
+  "traditional"), ...)
 }
 \arguments{
 \item{fittedModel}{a fitted model  of a class supported by DHARMa}
 
-\item{n}{number of simulations. Default is 100. A more save value would be 250 or even 1000. The smaller the number, the higher the stochastic error on the residuals. Also, for very small n, discretization artefacts can influence the tests.}
+\item{n}{number of simulations. The smaller the number, the higher the stochastic error on the residuals. Also, for very small n, discretization artefacts can influence the tests. Default is 250, which is a relatively safe value. You can consider increasing to 1000 to stabilize the simulated values.}
 
 \item{refit}{if FALSE, new data will be simulated and scaled residuals will be created by comparing observed data with new data. If TRUE, the model will be refit on the simulated data (parametric bootstrap), and scaled residuals will be created by comparing observed with refitted residuals.}
 
@@ -56,7 +57,7 @@ If the model is correctly specified, the simulated residuals should be flat rega
 \examples{
 library(lme4)
 
-testData = createData(sampleSize = 200, overdispersion = 0.5, family = poisson())
+testData = createData(sampleSize = 100, overdispersion = 0.5, family = poisson())
 fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), 
                      family = "poisson", data = testData)
 
@@ -65,10 +66,8 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 # standard plot 
 plot(simulationOutput)
 
-# one of the possible test, for other options see ?testResiduals 
-testOutliers(simulationOutput)
-
-# for various other plots and tests, see the help / vignette
+# one of the possible test, for other options see ?testResiduals / vignette
+testDispersion(simulationOutput)
 
 # the calculated residuals can be accessed via 
 residuals(simulationOutput)
@@ -76,15 +75,10 @@ residuals(simulationOutput)
 # transform residuals to other pdf, see ?residuals.DHARMa for details
 residuals(simulationOutput, quantileFunction = qnorm, outlierValues = c(-7,7))
 
-# calculating summaries per group
+# calculating residuals per group
 simulationOutput = recalculateResiduals(simulationOutput, group = testData$group)
 plot(simulationOutput, quantreg = FALSE)
 
-# create residuals with refitting, see ?simulateResiduals for details
-# n=10 is very low, set higher when using this for real
-simulationOutput <- simulateResiduals(fittedModel = fittedModel, 
-                                      n = 10, refit = TRUE)
-plot(simulationOutput, quantreg = FALSE)
 
 
 }
