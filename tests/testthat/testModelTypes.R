@@ -7,6 +7,7 @@ library(lme4)
 library(mgcv)
 library(glmmTMB)
 library(spaMM)
+library(GLMMadaptive)
 set.seed(123)
 
 doPlots = F
@@ -76,13 +77,15 @@ runEverything = function(fittedModel, testData, DHARMaData = T, expectOverdisper
   simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, refit = T, n = 5) # n=10 is very low, set higher for serious tests
 
   checkOutput(simulationOutput2)
-
   if(doPlots) plot(simulationOutput2, quantreg = F)
 
-  testDispersion(simulationOutput2, plot = doPlots)
-
-  simulationOutput2 <- recalculateResiduals(simulationOutput2, group = testData$group)
-  testDispersion(simulationOutput2, plot = doPlots)
+  # note that the pearson test is biased, therefore have to test greater
+  #expect_gt(testDispersion(simulationOutput2, plot = doPlots, alternative = "greater")$p.value, 0.001)
+  x = testDispersion(simulationOutput2, plot = doPlots)
+  
+  simulationOutput3 <- recalculateResiduals(simulationOutput2, group = testData$group)
+  #expect_gt(testDispersion(simulationOutput3, plot = doPlots, alternative = "greater")$p.value, 0.001)
+  x = testDispersion(simulationOutput3, plot = doPlots)
 
 }
 
@@ -101,7 +104,7 @@ test_that("lm works",
             fittedModel <- glm(observedResponse ~ Environment1 , data = testData)
             runEverything(fittedModel, testData)
 
-            fittedModel <- gam(observedResponse ~ s(Environment1) , data = testData)
+            fittedModel <- gam(observedResponse ~ Environment1 , data = testData)
             runEverything(fittedModel, testData)
 
             fittedModel <- lmer(observedResponse ~ Environment1 + (1|group) , data = testData)
@@ -112,6 +115,9 @@ test_that("lm works",
 
             fittedModel <- HLfit(observedResponse ~ Environment1 + (1|group) , data = testData)
             runEverything(fittedModel, testData)
+            
+            # GLMMadaptive does not support gaussian
+            # fittedModel <- mixed_model(fixed = observedResponse ~ Environment1, random = ~ 1 | group, data = testData, family = gaussian())
 
           }
 )
@@ -139,7 +145,7 @@ test_that("binomial 1/0 works",
             fittedModel <- glm(observedResponse ~ Environment1  , family = "binomial", data = testData)
             runEverything(fittedModel, testData)
 
-            fittedModel <- gam(observedResponse ~ s(Environment1) ,family = "binomial", data = testData)
+            fittedModel <- gam(observedResponse ~ Environment1 ,family = "binomial", data = testData)
             runEverything(fittedModel, testData)
 
             fittedModel <- glm(observedResponse ~ Environment1 , family = "binomial", data = testData)
@@ -153,6 +159,10 @@ test_that("binomial 1/0 works",
 
             fittedModel <- HLfit(observedResponse ~ Environment1 + (1|group) , family = "binomial",  data = testData)
             runEverything(fittedModel, testData)
+            
+            fittedModel <- GLMMadaptive::mixed_model(fixed = observedResponse ~ Environment1, random = ~ 1 | group, data = testData, family = binomial())
+            runEverything(fittedModel, testData)
+            
           }
 )
 
@@ -182,6 +192,9 @@ test_that("binomial y/n (factor) works",
 
             fittedModel <- HLfit(observedResponse ~ Environment1 + (1|group) , family = "binomial",  data = testData)
             runEverything(fittedModel, testData)
+            
+            fittedModel <- GLMMadaptive::mixed_model(fixed = observedResponse ~ Environment1, random = ~ 1 | group, data = testData, family = binomial())
+            runEverything(fittedModel, testData)
           }
 )
 
@@ -192,15 +205,15 @@ test_that("glm binomial n/k with matrix works",
             skip_on_cran()
 
             testData = createData(sampleSize = 200, overdispersion = 0, randomEffectVariance = 0, family = binomial(), binomialTrials = 20)
+            
             fittedModel <- glm(cbind(observedResponse1,observedResponse0)  ~ Environment1 , family = "binomial", data = testData)
             runEverything(fittedModel, testData)
 
-            fittedModel <- gam(cbind(observedResponse1,observedResponse0) ~ s(Environment1) ,family = "binomial", data = testData)
-
+            fittedModel <- gam(cbind(observedResponse1,observedResponse0) ~ Environment1 ,family = "binomial", data = testData)
             # gam doesn't work, check
             #runEverything(fittedModel, testData)
 
-            fittedModel <- glmer(cbind(observedResponse1,observedResponse0) ~ Environment1 + (1|group) , family = "binomial", data = testData)
+            fittedModel <- lme4::glmer(cbind(observedResponse1,observedResponse0) ~ Environment1 + (1|group) , family = "binomial", data = testData)
             runEverything(fittedModel, testData)
 
             fittedModel <- glmmTMB(cbind(observedResponse1,observedResponse0) ~ Environment1 + (1|group) , family = "binomial", data = testData)
@@ -211,6 +224,10 @@ test_that("glm binomial n/k with matrix works",
 
             fittedModel <- HLfit(cbind(observedResponse1,observedResponse0) ~ Environment1 + (1|group) , family = "binomial",  data = testData)
             runEverything(fittedModel, testData)
+            
+            fittedModel <- GLMMadaptive::mixed_model(fixed = cbind(observedResponse1,observedResponse0) ~ Environment1, random = ~ 1 | group, data = testData, family = binomial())
+            # Does not work yet
+            #runEverything(fittedModel, testData)
 
           }
 )
@@ -229,7 +246,7 @@ test_that("glm binomial n/k with weights works",
             fittedModel <- glm(prop  ~ Environment1 , family = "binomial", data = testData, weights = rep(20,200))
             runEverything(fittedModel, testData)
 
-            fittedModel <- gam(prop ~ s(Environment1) ,family = "binomial", data = testData, weights = rep(20,200))
+            fittedModel <- gam(prop ~ Environment1 ,family = "binomial", data = testData, weights = rep(20,200))
             runEverything(fittedModel, testData)
 
             fittedModel <- glmer(prop ~ Environment1 + (1|group) , family = "binomial", data = testData, weights = rep(20,200))
@@ -241,10 +258,14 @@ test_that("glm binomial n/k with weights works",
             fittedModel <- glmmTMB(prop ~ Environment1 + (1|group) , family = "betabinomial", data = testData, weights = rep(20,200))
             runEverything(fittedModel, testData)
 
-
             # spaMM doesn't support binomial k/n via weights
             #fittedModel <- HLfit(prop ~ Environment1 + (1|group) , family = "binomial",  data = testData, prior.weights = rep(20,200))
             #runEverything(fittedModel, testData)
+            
+            # GLMMadaptive doesn't support binomial k/n via weights            
+            #fittedModel <- GLMMadaptive::mixed_model(fixed = observedResponse ~ Environment1, random = ~ 1 | group, data = testData, family = binomial(), weights = rep(20,200))
+            # does not yet work 
+            # runEverything(fittedModel, testData)
 
           }
 )
@@ -300,12 +321,15 @@ test_that("glm poisson works",
             # runEverything(fittedModel, testData)
             # expectDispersion(fittedModel2, F)
 
-
-
             fittedModel <- HLfit(observedResponse ~ Environment1 + (1|group) , family = "poisson",  data = testData)
             runEverything(fittedModel, testData)
+            
             fittedModel2 <- HLfit(observedResponse ~ Environment1 + (1|group) , family = "poisson",  data = testData2)
             expectDispersion(fittedModel2)
+            
+            fittedModel <- GLMMadaptive::mixed_model(fixed = observedResponse ~ Environment1, random = ~ 1 | group, data = testData, family = poisson())
+            runEverything(fittedModel, testData)
+            
           }
 )
 
@@ -334,11 +358,11 @@ test_that("glm poisson weights throws warning",
 
                       # lm weights are considered in simulate(), should not throw warning
                       fittedModel <- lm(observedResponse ~ Environment1 , data = testData, weights = weights)
-                      simulateResiduals(fittedModel)
+                      expect_s3_class(simulateResiduals(fittedModel), "DHARMa")
 
                       # glm gaussian still the same
                       fittedModel <- glm(observedResponse ~ Environment1 , data = testData, weights = weights)
-                      simulateResiduals(fittedModel)
+                      expect_s3_class(simulateResiduals(fittedModel), "DHARMa")
 
                       # glm behaves nice, throws a warning that simulate ignores weights for poisson
                       fittedModel <- glm(observedResponse ~ Environment1 , weights = weights, data = testData, family = "poisson")
@@ -348,7 +372,7 @@ test_that("glm poisson weights throws warning",
                       fittedModel <- gam(observedResponse ~ Environment1 , weights = weights, data = testData, family = "poisson")
                       expect_warning(simulateResiduals(fittedModel))
 
-                      # lmer does not warn!
+                      # lmer warns!
                       fittedModel <- lmer(observedResponse ~ Environment1 + (1|group) , data = testData, weights = weights)
                       expect_warning(simulateResiduals(fittedModel))
 
@@ -374,8 +398,15 @@ test_that("glm poisson weights throws warning",
 
                       # doesn't throw error / warning, but seems intended, see https://github.com/florianhartig/DHARMa/issues/175
                       #expect_error( fittedModel <- HLfit(observedResponse ~ Environment1 + (1|group) , family = "poisson",  data = testData, prior.weights = weights))
+                      
                       fittedModel <- HLfit(observedResponse ~ Environment1 + (1|group) , family = negbin(1),  data = testData, prior.weights = weights)
-                      simulateResiduals(fittedModel)
+                      expect_s3_class(simulateResiduals(fittedModel), "DHARMa")
+                      
+                      
+                      # GLMMadaptive requires weights according to groups
+                      weights = rep(c(1,1.1), each = 5)
+                      fittedModel <- GLMMadaptive::mixed_model(fixed = observedResponse ~ Environment1, random = ~ 1 | group, data = testData, family = poisson(), weights = weights)
+                      expect_warning(simulateResiduals(fittedModel))
                     }
           )
 
@@ -444,3 +475,15 @@ test_that("glm poisson weights throws warning",
 #           }
 # )
 #
+
+
+# special tests --------------------------------------------------------------
+
+test_that("special tests",
+          {
+            testData = createData(sampleSize = 100, fixedEffects = c(1,0), overdispersion = 0, randomEffectVariance = 0, family = gaussian())
+            fittedModel <- gam(observedResponse ~ s(Environment1) , data = testData)
+            simulateResiduals(fittedModel)
+            
+          })
+

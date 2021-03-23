@@ -1,3 +1,41 @@
+####### Notes #########
+
+# This file contains the wrappers for the models supported by DHARMa. DHARMa is interaction with packages ONLY via the wrappers. Below are
+#
+# 1) supported models in getPossibleModels
+# 2) generic S3 wrapper functions (function names see "New Class Template"), including default functions. 
+# 3) package / class specific wrappers.
+
+# The general approach for integrating a package in DHARMa is
+# 
+# i) copy new class template
+# ii) test if S3 default functions work
+# iii) if not, define class-specific S3 functions
+
+# See comments in the help of the generic S3 functions for guidance about how to implement each function
+
+####### New Class Template #########
+
+# getObservedResponse
+
+# getSimulations
+
+# getFixedEffects
+
+# getRefit
+
+# getFitted
+
+# getResiduals
+
+######### Generics #############
+
+#' get possible models
+#' 
+#' returns a list of supported model classes 
+#' 
+#' @keywords internal
+getPossibleModels<-function()c("lm", "glm", "negbin", "lmerMod", "lmerModLmerTest", "glmerMod", "gam", "bam", "glmmTMB", "HLfit", "MixMod")
 
 # New S3 methods
 
@@ -5,7 +43,8 @@
 #'
 #' Extract the response of a fitted model
 #'
-#' The purpose of this function is to savely extract the response (dependent variable) of the fitted model classes
+#' The purpose of this function is to safely extract the observed response (dependent variable) of the fitted model classes
+#' 
 #'
 #' @param object a fitted model
 #' @param ... additional parameters
@@ -166,11 +205,13 @@ getRefit.default <- function (object, newresp, ...){
   refit(object, newresp, ...)
 }
 
-#' Get model fitted
+#' Get fitted / predicted values
 #'
-#' Wrapper to get the fitted value a fitted model
+#' Wrapper to get the fitted / predicted response of model at the response scale
 #'
-#' The purpose of this wrapper is to standardize extract the fitted values
+#' The purpose of this wrapper is to standardize extract the fitted values, which is implemented via predict(model, type = "response") for most model classes.
+#' 
+#' If you implement this function for a new model class, you should include an option to modifying which REs are included in the predictions. If this option is not available, it is essential that predictions are provided marginally / unconditionally, i.e. without the random effect estimates (because of https://github.com/florianhartig/DHARMa/issues/43), which corresponds to re-form = ~0 in lme4
 #'
 #' @param object a fitted model
 #' @param ... additional parameters to be passed on, usually to the simulate function of the respective model class
@@ -185,10 +226,40 @@ getFitted <- function (object, ...) {
   UseMethod("getFitted", object)
 }
 
+# NOTE - a bit unclear if fitted or predict should be used
+
 #' @rdname getFitted
 #' @export
 getFitted.default <- function (object,...){
-  fitted(object, ...)
+  predict(object, type = "response", re.form = ~0)
+}
+
+
+#' Get model residuals
+#'
+#' Wrapper to get the residuals of a fitted model
+#'
+#' The purpose of this wrapper is to standardize extract the model residuals. Similar to some other functions, a key question is whether to calculate those conditional or unconditional on the fitted REs. 
+#'
+#' @param object a fitted model
+#' @param ... additional parameters to be passed on, usually to the residual function of the respective model class
+#'
+#' @example inst/examples/wrappersHelp.R
+#'
+#' @seealso \code{\link{getObservedResponse}}, \code{\link{getSimulations}}, \code{\link{getRefit}}, \code{\link{getFixedEffects}}, \code{\link{getFitted}}
+#'
+#' @author Florian Hartig
+#' @export
+getResiduals <- function (object, ...) {
+  UseMethod("getFitted", object)
+}
+
+# NOTE - a bit unclear if fitted or predict should be used
+
+#' @rdname getFitted
+#' @export
+getResiduals.default <- function (object,...){
+  residuals(object, type = "response")
 }
 
 #' has NA
@@ -200,7 +271,6 @@ getFitted.default <- function (object,...){
 #' @details Checks if the fitted model excluded NA values
 #'
 #' @export
-
 
 # hasNA <- function(object){
 #   x = rownames(model.frame(object))
@@ -402,4 +472,66 @@ getSimulations.HLfit <- function(object, nsim = 1, type = c("normal", "refit"), 
 getRefit.HLfit <- function(object, newresp, ...) {
   spaMM::update_resp(object, newresp, evaluate = TRUE)
 }
+
+#' @rdname getFitted
+#' @export
+getFitted.HLfit <- function (object,...){
+  predict(object, type = "response", re.form = ~0)[,1L]
+}
+
+####### GLMMadaptive #########
+
+### getObservedResponse - seems getObservedResponse.default is working
+
+#' @rdname getSimulations
+#' @export
+getSimulations.MixMod <- function(object, nsim = 1, type = c("normal", "refit"), ...){
+  
+  if ("weights" %in% names(object)) warning(weightsWarning)
+  
+  type <- match.arg(type)
+  
+  out = simulate(object, nsim = nsim , ...)
+  
+  if(type == "normal"){
+    if(!is.matrix(out)) out = data.matrix(out)
+  }else{
+    out = as.data.frame(out)
+  }
+  return(out)
+}
+
+#' @rdname getFixedEffects
+#' @export
+getFixedEffects.MixMod <- function(fittedModel){
+  out <- fixef(fittedModel, sub_model = "main")   
+  return(out)
+}
+
+# TODO: this could go wrong if the DF has no column names, although I guess then one couldn't use formula
+# TODO: goes wrong for k/n binomial with c(s,f) ~ pred syntax
+
+#' @rdname getRefit
+#' @export
+getRefit.MixMod <- function(object, newresp, ...) {
+  responsename = colnames(model.frame(object))[1] 
+  newDat = object$data
+  newDat[, match(responsename,names(newDat))] = newresp
+  update(object, data = newDat)
+}
+
+#' @rdname getFitted
+#' @export
+getFitted.MixMod <- function (object,...){
+  predict(object, type = "mean_subject")
+}
+
+#' @rdname getResiduals
+#' @export
+getResiduals.MixMod <- function (object,...){
+  residuals(object, type = "subject_specific")
+}
+
+
+
 

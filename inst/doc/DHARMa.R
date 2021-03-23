@@ -13,10 +13,8 @@ fittedModelOverdispersed <- glmer(observedResponse ~ Environment1 + (1|group) , 
 
 plotConventionalResiduals(fittedModelOverdispersed)
 
-
 testData = createData(sampleSize = 250, intercept = 0, overdispersion = 0, family = poisson(), randomEffectVariance = 0)
 fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , family = "poisson", data = testData)
-
 plotConventionalResiduals(fittedModel)
 
 
@@ -29,13 +27,14 @@ citation("DHARMa")
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 250)
-fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , family = "poisson", data = testData)
+fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , 
+                     family = "poisson", data = testData)
 
-## ---- fig.show='hide'----------------------------------------------------
+## ---- results = "hide", fig.show='hide'----------------------------------
 testDispersion(fittedModel)
 
-## ---- fig.show='hide'----------------------------------------------------
-simulationOutput <- simulateResiduals(fittedModel = fittedModel, plot = T)
+## ------------------------------------------------------------------------
+simulationOutput <- simulateResiduals(fittedModel = fittedModel, plot = F)
 
 ## ---- results = "hide"---------------------------------------------------
 residuals(simulationOutput)
@@ -51,13 +50,10 @@ plot(simulationOutput)
 #  plotResiduals(simulationOutput) # right plot in plot.DHARMa()
 
 ## ---- eval = F-----------------------------------------------------------
-#  plotResiduals(simulationOutput, YOURPREDICTOR)
+#  plotResiduals(simulationOutput, form = YOURPREDICTOR)
 
 ## ---- eval = F-----------------------------------------------------------
-#  hist(simulationOutput)
-
-## ---- eval = F-----------------------------------------------------------
-#  testResiduals(simulationOutput)
+#  plotResiduals(simulationOutput, form = testData$group)
 
 ## ---- eval = F-----------------------------------------------------------
 #  ?simulateResiduals
@@ -89,13 +85,7 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
 
 ## ----overDispersionTest, echo = T, fig.width=4.5, fig.height=4.5---------
-
-# Option 2
 testDispersion(simulationOutput)
-
-# Option 3
-simulationOutput2 <- simulateResiduals(fittedModel = fittedModel, refit = T, n = 20)
-testDispersion(simulationOutput2)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, intercept = 2, fixedEffects = c(1), overdispersion = 0, family = poisson(), quadraticFixedEffects = c(-3), randomEffectVariance = 0, pZeroInflation = 0.6)
@@ -105,14 +95,12 @@ plot(testData$Environment1, testData$observedResponse, xlab = "Envrionmental Pre
 hist(testData$observedResponse, xlab = "Response", main = "")
 
 ## ------------------------------------------------------------------------
-
 fittedModel <- glmer(observedResponse ~ Environment1 + I(Environment1^2) + (1|group) , family = "poisson", data = testData)
 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
 
 ## ---- fig.width=4, fig.height=4------------------------------------------
-
 testZeroInflation(simulationOutput)
 
 ## ------------------------------------------------------------------------
@@ -136,6 +124,9 @@ plot(simulationOutput)
 
 ## ---- eval = F-----------------------------------------------------------
 #  testQuantiles(simulationOutput)
+
+## ---- eval = F-----------------------------------------------------------
+#  testCategorical(simulationOutput, catPred = testData$group)
 
 ## ------------------------------------------------------------------------
 testData = createData(sampleSize = 500, intercept = 0, overdispersion = function(x){return(rnorm(length(x), sd = 2*abs(x)))}, family = poisson(), randomEffectVariance = 0)
@@ -162,27 +153,11 @@ par(mfrow = c(1,2))
 plotResiduals(simulationOutput, testData$Environment1)
 plotResiduals(simulationOutput, testData$Environment2)
 
-## ------------------------------------------------------------------------
-testData = createData(sampleSize = 100, family = poisson(), temporalAutocorrelation = 5)
-
-fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), data = testData, family = poisson() )
-
-simulationOutput <- simulateResiduals(fittedModel = fittedModel)
-
-## ------------------------------------------------------------------------
-testTemporalAutocorrelation(simulationOutput = simulationOutput, time = testData$time)
-
-## ------------------------------------------------------------------------
-testData = createData(sampleSize = 100, family = poisson(), spatialAutocorrelation = 5)
-
-fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), data = testData, family = poisson() )
-
-simulationOutput <- simulateResiduals(fittedModel = fittedModel)
-
-
 ## ---- fig.width=4.5, fig.height=4.5--------------------------------------
+testData = createData(sampleSize = 100, family = poisson(), spatialAutocorrelation = 5)
+fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), data = testData, family = poisson() )
+simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 testSpatialAutocorrelation(simulationOutput = simulationOutput, x = testData$x, y= testData$y)
-# testSpatialAutocorrelation(simulationOutput = simulationOutput) # again, this uses random x,y
 
 ## ---- echo = F-----------------------------------------------------------
 data = structure(list(N_parasitized = c(226, 689, 481, 960, 1177, 266, 
@@ -351,9 +326,6 @@ simulatePoissonGLM <- function(fittedModel, n){
 sim = simulatePoissonGLM(fittedModel, 100)
 
 DHARMaRes = createDHARMa(simulatedResponse = sim, observedResponse = testData$observedResponse, 
-             fittedPredictedResponse = predict(fittedModel))
+             fittedPredictedResponse = predict(fittedModel), integerResponse = T)
 plot(DHARMaRes, quantreg = F)
-
-## ---- eval = F-----------------------------------------------------------
-#  res = createDHARMa(scaledResiduals = posteriorPredictiveSimulations, simulatedResponse = medianPosteriorPredictions, observedResponse = observations, integerResponse = ?)
 

@@ -2,42 +2,40 @@
 % Please edit documentation in R/tests.R
 \name{testSpatialAutocorrelation}
 \alias{testSpatialAutocorrelation}
-\title{Test for spatial autocorrelation}
+\title{Test for distance-based (spatial, phylogenetic or similar) autocorrelation}
 \usage{
 testSpatialAutocorrelation(simulationOutput, x = NULL, y = NULL,
   distMat = NULL, alternative = c("two.sided", "greater", "less"),
   plot = T)
 }
 \arguments{
-\item{simulationOutput}{an object of class DHARMa with simulated quantile residuals, either created via \code{\link{simulateResiduals}} or by \code{\link{createDHARMa}} for simulations created outside DHARMa}
+\item{simulationOutput}{an object of class DHARMa, either created via \code{\link{simulateResiduals}} for supported models or by \code{\link{createDHARMa}} for simulations created outside DHARMa, or a supported model. Providing a supported model directly is discouraged, because simulation settings cannot be changed in this case.}
 
-\item{x}{the x coordinate, in the same order as the data points. If not provided, random values will be created}
+\item{x}{the x coordinate, in the same order as the data points. Must be specified unless distMat is provided.}
 
-\item{y}{the y coordinate, in the same order as the data points. If not provided, random values will be created}
+\item{y}{the y coordinate, in the same order as the data points. Must be specified unless distMat is provided.}
 
-\item{distMat}{optional distance matrix. If not provided, a distance matrix will be calculated based on x and y. See details for explanation}
+\item{distMat}{optional distance matrix. If not provided, euclidean distances based on x and y will be calculated. See details for explanation}
 
 \item{alternative}{a character string specifying whether the test should test if observations are "greater", "less" or "two.sided" compared to the simulated null hypothesis}
 
 \item{plot}{whether to plot output}
 }
 \description{
-This function performs a standard test for spatial autocorrelation on the simulated residuals
+This function performs a Moran's I test for distance-based (spatial, phylogenetic or similar) autocorrelation on the calculated quantile residuals
 }
 \details{
 The function performs Moran.I test from the package ape, based on the provided distance matrix of the data points.
 
 There are several ways to specify this distance. If a distance matrix (distMat) is provided, calculations will be based on this distance matrix, and x,y coordinates will only used for the plotting (if provided)
-If distMat is not provided, the function will calculate the euclidian distances between x,y coordinates, and test Moran.I based on these distances.
-
-If no x/y values are provided, random values will be created. The sense of being able to run the test with x/y = NULL (random values) is to test the rate of false positives under the current residual structure (random x/y corresponds to H0: no spatial autocorrelation), e.g. to check if the test has nominal error rates for particular residual structures.
+If distMat is not provided, the function will calculate the euclidean distances between x,y coordinates, and test Moran.I based on these distances.
 
 Testing for spatial autocorrelation requires unique x,y values - if you have several observations per location, either use the recalculateResiduals function to aggregate residuals per location, or extract the residuals from the fitted object, and plot / test each of them independently for spatially repeated subgroups (a typical scenario would repeated spatial observation, in which case one could plot / test each time step separately for temporal autocorrelation). Note that the latter must be done by hand, outside testSpatialAutocorrelation.
 }
 \note{
 Important to note for all autocorrelation tests (spatial / temporal): the autocorrelation tests are valid to check for residual autocorrelation in models that don't assume such a correlation (in this case, you can use conditional or unconditional simulations), or if there is remaining residual autocorrelation after accounting for it in a spatial/temporal model (in that case, you have to use conditional simulations), but if checking unconditional simulations from a model with an autocorrelation structure on data that corresponds to this model, they will be significant, even if the model fully accounts for this structure.
 
-This behavior is not really a bug, but rather originates from the definition of the quantile residuals: quantile residuals are calculated independently per data point, i.e. without consideratin of any correlation structure between data points that may exist in the simulations. As a result, the simulated distributions from a unconditional simulaton will typically not reflect the correlation structure that is present in each single simulation, and the same is true for the subsequently calculated quantile residuals.
+This behavior is not really a bug, but rather originates from the definition of the quantile residuals: quantile residuals are calculated independently per data point, i.e. without consideration of any correlation structure between data points that may exist in the simulations. As a result, the simulated distributions from a unconditional simulation will typically not reflect the correlation structure that is present in each single simulation, and the same is true for the subsequently calculated quantile residuals.
 
 The bottomline here is that spatial / temporal / other autoregressive models should either be tested based on conditional simulations, or (ideally) custom tests should be used that are not based on quantile residuals, but rather compare the correlation structure in the simulated data with the correlation structure in the observed data.
 }
@@ -49,28 +47,41 @@ res = simulateResiduals(fittedModel)
 # Standard use
 testSpatialAutocorrelation(res, x =  testData$x, y = testData$y)
 
-# If x and y is not provided, random values will be created
-testSpatialAutocorrelation(res)
-
 # Alternatively, one can provide a distance matrix
 dM = as.matrix(dist(cbind(testData$x, testData$y)))
 testSpatialAutocorrelation(res, distMat = dM)
 
+# You could add a spatial variogram via 
+# library(gstat)
+# dat = data.frame(res = residuals(res), x = testData$x, y = testData$y)
+# coordinates(dat) = ~x+y
+# vario = variogram(res~1, data = dat, alpha=c(0,45,90,135))
+# plot(vario, ylim = c(-1,1))
+
 # if there are multiple observations with the same x values,
 # create first ar group with unique values for each location
 # then aggregate the residuals per location, and calculate
-# spatial autocorreation on the new group
+# spatial autocorrelation on the new group
 
+# modifying x, y, so that we have the same location per group
+# just for completeness
+testData$x = as.numeric(testData$group)
+testData$y = as.numeric(testData$group)
+
+# calculating x, y positions per group
+groupLocations = aggregate(testData[, 6:7], list(testData$group), mean)
+
+# calculating residuals per group
 res2 = recalculateResiduals(res, group = testData$group)
-testSpatialAutocorrelation(res)
 
+# running the spatial test on grouped residuals
+testSpatialAutocorrelation(res2, groupLocations$x, groupLocations$y)
 
-# carefull when using REs to account for spatially clustered (but not grouped)
+# careful when using REs to account for spatially clustered (but not grouped)
 # data. this originates from https://github.com/florianhartig/DHARMa/issues/81
 
-
 # Assume our data is divided into clusters, where observations are close together
-# but not at te same point, and we suspect that observations in clusters are
+# but not at the same point, and we suspect that observations in clusters are
 # autocorrelated
 
 clusters = 100
@@ -94,7 +105,7 @@ res = simulateResiduals(fittedModel)
 testSpatialAutocorrelation(res, x =  testData$x, y = testData$y)
 
 # However, it should disappear if you just calculate an aggregate residuals per cluster
-# Because at least how the data are simualted, cluster are spatially independent
+# Because at least how the data are simulated, cluster are spatially independent
 
 res2 = recalculateResiduals(res, group = testData$group)
 testSpatialAutocorrelation(res2, 
@@ -108,9 +119,11 @@ testSpatialAutocorrelation(res2,
 
 res = simulateResiduals(fittedModel, re.form = NULL)
 testSpatialAutocorrelation(res, x =  testData$x, y = testData$y)
+
+
 }
 \seealso{
-\code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testQuantiles}}
+\code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testQuantiles}}, \code{\link{testCategorical}}
 }
 \author{
 Florian Hartig

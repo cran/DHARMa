@@ -4,7 +4,7 @@
 \alias{plotResiduals}
 \title{Generic res ~ pred scatter plot with spline or quantile regression on top}
 \usage{
-plotResiduals(simulationOutput, form = NULL, quantreg = NULL, rank = F,
+plotResiduals(simulationOutput, form = NULL, quantreg = NULL, rank = T,
   asFactor = NULL, smoothScatter = NULL, quantiles = c(0.25, 0.5, 0.75),
   ...)
 }
@@ -13,7 +13,7 @@ plotResiduals(simulationOutput, form = NULL, quantreg = NULL, rank = F,
 
 \item{form}{optional predictor against which the residuals should be plotted. Default is to used the predicted(simulationOutput)}
 
-\item{quantreg}{whether to perform a quantile regression on 0.25, 0.5, 0.75 on the residuals. If F, a spline will be created instead. Default NULL chooses T for nObs < 2000, and F otherwise.}
+\item{quantreg}{whether to perform a quantile regression based on \code{\link{testQuantiles}} or a smooth spline around the mean. Default NULL chooses T for nObs < 2000, and F otherwise.}
 
 \item{rank}{if T, the values provided in form will be rank transformed. This will usually make patterns easier to spot visually, especially if the distribution of the predictor is skewed. If form is a factor, this has no effect.}
 
@@ -36,18 +36,18 @@ The function plots residuals against a predictor (by default against the fitted 
 
 Outliers are highlighted in red (for information on definition and interpretation of outliers, see \code{\link{testOutliers}}).
 
-To provide a visual aid in detecting deviations from uniformity in y-direction, the plot function calculates an (optional) quantile regression, which compares the empirical 0.25, 0.5 and 0.75 quantiles (default) in y direction (red solid lines) with the theoretical 0.25, 0.5 and 0.75 quantiles (dashed black line).
+To provide a visual aid in detecting deviations from uniformity in y-direction, the plot function calculates an (optional) quantile regression of the residuals, by default for the 0.25, 0.5 and 0.75 quantiles. As the residuals should be uniformly distributed for a correctly specified model, the theoretical expectations for these regressions are straight lines at 0.25, 0.5 and 0.75, which are displayed as dashed black lines on the plot. Some deviations from these expectations are to be expected by chance, however, even for a perfect model, especially if the sample size is small. The function therefore tests if deviation of the fitted quantile regression from the expectation is significant, using  \code{\link{testQuantiles}}. If so, the significant quantile regression will be highlighted as red, and a warning will be displayed in the plot. 
 
-Asymptotically (i.e. for lots of data / residuals), if the model is correct, theoretical and the empirical quantiles should be identical (i.e. dashed and solid lines should match). A p-value for the deviation is calculated for each quantile line. Significant deviations are highlighted by red color.
+The quantile regression can take some time to calculate, especially for larger datasets. For that reason, quantreg = F can be set to produce a smooth spline instead. This is default for n > 2000.
 
-If form is a factor, a boxplot will be plotted instead of a scatter plot. The distribution for each factor level should be uniformly distributed, so the box should go from 0.25 to 0.75, with the median line at 0.5. Again, chance deviations from this will increases when the sample size is smaller. You can run null simulations to test if the deviations you see exceed what you would expect from random variation. If you want to create box plots for categorical predictors (e.g. because you only have a small number of unique numeric predictor values), you can convert your predictor with as.factor(pred)
+If form is a factor, a boxplot will be plotted instead of a scatter plot. The distribution for each factor level should be uniformly distributed, so the box should go from 0.25 to 0.75, with the median line at 0.5 (within-group ). To test if deviations from those expecations are significant, KS-tests per group and a Levene test for homogeneity of variances is performed. See \code{\link{testCategorical}} for details.
 }
 \note{
-The quantile regression can take some time to calculate, especially for larger datasets. For that reason, quantreg = F can be set to produce a smooth spline instead.
+if nObs > 10000, the scatter plot is replaced by graphics::smoothScatter
 }
 \examples{
 testData = createData(sampleSize = 200, family = poisson(), 
-                      randomEffectVariance = 1, numGroups = 5)
+                      randomEffectVariance = 1, numGroups = 10)
 fittedModel <- glm(observedResponse ~ Environment1, 
                    family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
@@ -61,7 +61,10 @@ plot(simulationOutput, quantreg = FALSE)
 
 #############  Distribution  ######################
 
-plotQQunif(simulationOutput = simulationOutput)
+plotQQunif(simulationOutput = simulationOutput, 
+           testDispersion = FALSE,
+           testUniformity = FALSE,
+           testOutliers = FALSE)
 
 hist(simulationOutput )
 
@@ -77,19 +80,18 @@ plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE, smoothScatter = T
 plotResiduals(simulationOutput, form = testData$Environment1, 
               quantreg = FALSE)
 
-# if pred is a factor, or asFactor = T, will produce a boxplot
-plotResiduals(simulationOutput, form = testData$group,
-              quantreg = FALSE, asFactor = TRUE)
+# if pred is a factor, or if asFactor = T, will produce a boxplot
+plotResiduals(simulationOutput, form = testData$group)
 
 # All these options can also be provided to the main plotting function
-plot(simulationOutput, quantreg = FALSE, rank = FALSE)
 
 # If you want to plot summaries per group, use
 simulationOutput = recalculateResiduals(simulationOutput, group = testData$group)
-plot(simulationOutput, asFactor = TRUE) # we see one residual point per RE
+plot(simulationOutput, quantreg = FALSE) 
+# we see one residual point per RE
 
 
 }
 \seealso{
-\code{\link{plotQQunif}}
+\code{\link{plotQQunif}}, \code{\link{testQuantiles}}, \code{\link{testOutliers}}
 }

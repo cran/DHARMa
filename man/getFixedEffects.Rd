@@ -2,9 +2,12 @@
 % Please edit documentation in R/compatibility.R
 \name{getFixedEffects}
 \alias{getFixedEffects}
+\alias{getFixedEffects.MixMod}
 \title{Extract fixed effects of a supported model}
 \usage{
 getFixedEffects(fittedModel)
+
+getFixedEffects.MixMod(fittedModel)
 }
 \arguments{
 \item{fittedModel}{a fitted model}

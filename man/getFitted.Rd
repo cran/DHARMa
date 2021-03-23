@@ -3,14 +3,23 @@
 \name{getFitted}
 \alias{getFitted}
 \alias{getFitted.default}
+\alias{getResiduals.default}
 \alias{getFitted.gam}
-\title{Get model fitted}
+\alias{getFitted.HLfit}
+\alias{getFitted.MixMod}
+\title{Get fitted / predicted values}
 \usage{
 getFitted(object, ...)
 
 \method{getFitted}{default}(object, ...)
 
+\method{getResiduals}{default}(object, ...)
+
 \method{getFitted}{gam}(object, ...)
+
+\method{getFitted}{HLfit}(object, ...)
+
+\method{getFitted}{MixMod}(object, ...)
 }
 \arguments{
 \item{object}{a fitted model}
@@ -18,10 +27,12 @@ getFitted(object, ...)
 \item{...}{additional parameters to be passed on, usually to the simulate function of the respective model class}
 }
 \description{
-Wrapper to get the fitted value a fitted model
+Wrapper to get the fitted / predicted response of model at the response scale
 }
 \details{
-The purpose of this wrapper is to standardize extract the fitted values
+The purpose of this wrapper is to standardize extract the fitted values, which is implemented via predict(model, type = "response") for most model classes.
+
+If you implement this function for a new model class, you should include an option to modifying which REs are included in the predictions. If this option is not available, it is essential that predictions are provided marginally / unconditionally, i.e. without the random effect estimates (because of https://github.com/florianhartig/DHARMa/issues/43), which corresponds to re-form = ~0 in lme4
 }
 \examples{
 testData = createData(sampleSize = 400, family = gaussian())
