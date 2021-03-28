@@ -1,8 +1,8 @@
-4a534568bccaa35fd53d25adc07fc21a *DESCRIPTION
+b7fe8949ea2d85221942a70176606df0 *DESCRIPTION
 6d214734b6d88d0ff992ac8098cbbbc3 *NAMESPACE
-d9dffe9c8a3f0bd8d1f6a2998d2288f7 *NEWS
+7974286365a9d3af937b4eea1019e8c7 *NEWS
 b5829875511c6e75839f99f200dd2055 *R/DHARMa.R
-1b7510a71cac7376c1e79c45ccbe61f3 *R/compatibility.R
+1e6b4b54e105f437f39d4e35a430867d *R/compatibility.R
 a49bfa36f0097af48f67a41629466970 *R/createData.R
 84b279dfff8f18d92a2735ee747e9095 *R/helper.R
 93424a44718c943054d63782cafe5073 *R/imports.R
@@ -17,10 +17,10 @@ a7731b25fc342cf7d19bcd1f6bc2829b *R/simulateResiduals.R
 748bf83bb586137bc666d26252889dd9 *build/vignette.rds
 5018df47c90a4b47ce841a866d65398e *inst/doc/DHARMa.R
 e811accd99482e22510727f24783a37c *inst/doc/DHARMa.Rmd
-7dfd291be5d2b95c88a5bc702266a150 *inst/doc/DHARMa.html
+2101a21a4d4cb8b93580f4b48b095355 *inst/doc/DHARMa.html
 27f68519153323307367f1c2a378c1ca *inst/doc/DHARMaForBayesians.R
 2831a0448efa9bf9d58f596fad6a970d *inst/doc/DHARMaForBayesians.Rmd
-61102fc04b2a180a17cdeb5fd73adc05 *inst/doc/DHARMaForBayesians.html
+a3a3d39d5ec36767938413448b74584f *inst/doc/DHARMaForBayesians.html
 590624f018ff6a61548978c1e9c81f35 *inst/examples/checkModelHelp.R
 157bf049ccdb1f599ae11ddcf143aae2 *inst/examples/createDataHelp.R
 a03e04292a6bcd04cd1b2fe5dae931fa *inst/examples/createDharmaHelp.R
