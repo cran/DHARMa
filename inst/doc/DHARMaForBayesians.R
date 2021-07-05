@@ -1,11 +1,11 @@
-## ----global_options, include=FALSE---------------------------------------
+## ----global_options, include=FALSE--------------------------------------------
 knitr::opts_chunk$set(fig.width=8.5, fig.height=5.5, fig.align='center', warning=FALSE, message=FALSE)
 
-## ---- echo = F, message = F----------------------------------------------
+## ---- echo = F, message = F---------------------------------------------------
 library(DHARMa)
 set.seed(123)
 
-## ---- eval = F-----------------------------------------------------------
+## ---- eval = F----------------------------------------------------------------
 #  library(rjags)
 #  library(BayesianTools)
 #  
@@ -48,13 +48,13 @@ set.seed(123)
 #  sim = createDHARMa(simulatedResponse = t(posteriorPredSim), observedResponse = dat$observedResponse, fittedPredictedResponse = apply(posteriorPredDistr, 2, median), integerResponse = T)
 #  plot(sim)
 
-## ---- eval=F-------------------------------------------------------------
+## ---- eval=F------------------------------------------------------------------
 #    # Posterior predictive simulations
 #    for (i in 1:nobs) {
 #      observedResponseSim[i]~dpois(lambda[i])
 #    }
 
-## ---- eval = F-----------------------------------------------------------
+## ---- eval = F----------------------------------------------------------------
 #    for(i in 1:nobs){
 #      observedResponse[i] ~ dpois(lambda[i])  # poisson error distribution
 #      lambda[i] <- exp(eta[i]) # inverse link function
@@ -65,7 +65,7 @@ set.seed(123)
 #     RE[j] ~ dnorm(0,tauRE)
 #    }
 
-## ---- eval=F-------------------------------------------------------------
+## ---- eval=F------------------------------------------------------------------
 #    for(j in 1:nGroups){
 #     RESim[j] ~ dnorm(0,tauRE)
 #    }
