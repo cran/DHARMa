@@ -211,42 +211,43 @@ anova(mod2, mod3)
 AIC(mod2) 
 AIC(mod3)
 
-## ---- eval = F----------------------------------------------------------------
-#  m1 <- glm(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)), data=Owls , family = poisson)
-#  res <- simulateResiduals(m1)
-#  plot(res)
+## ---- error=TRUE--------------------------------------------------------------
+library(glmmTMB)
+m1 <- glm(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)), data=Owls , family = poisson)
+res <- simulateResiduals(m1)
+plot(res)
 
-## ---- eval = F----------------------------------------------------------------
-#  m2 <- glmer(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = poisson)
-#  res <- simulateResiduals(m2)
-#  plot(res)
+## ---- error=TRUE--------------------------------------------------------------
+m2 <- glmer(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = poisson)
+res <- simulateResiduals(m2)
+plot(res)
 
-## ---- eval= F-----------------------------------------------------------------
-#  m3 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = nbinom1)
-#  
-#  res <- simulateResiduals(m3, plot = T)
-#  par(mfrow = c(1,3))
-#  plotResiduals(res, Owls$FoodTreatment)
-#  testDispersion(res)
-#  testZeroInflation(res)
+## ---- error=TRUE--------------------------------------------------------------
+m3 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), data=Owls , family = nbinom1)
 
-## ---- eval= F-----------------------------------------------------------------
-#  m4 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
-#  
-#  res <- simulateResiduals(m4, plot = T)
-#  par(mfrow = c(1,3))
-#  plotResiduals(res, Owls$FoodTreatment)
-#  testDispersion(res)
-#  testZeroInflation(res)
+res <- simulateResiduals(m3, plot = T)
+par(mfrow = c(1,3))
+plotResiduals(res, Owls$FoodTreatment)
+testDispersion(res)
+testZeroInflation(res)
 
-## ---- eval= F-----------------------------------------------------------------
-#  m5 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), dispformula = ~ FoodTreatment , ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
-#  
-#  res <- simulateResiduals(m4, plot = T)
-#  par(mfrow = c(1,3))
-#  plotResiduals(res, Owls$FoodTreatment)
-#  testDispersion(res)
-#  testZeroInflation(res)
+## ---- error=TRUE--------------------------------------------------------------
+m4 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
+
+res <- simulateResiduals(m4, plot = T)
+par(mfrow = c(1,3))
+plotResiduals(res, Owls$FoodTreatment)
+testDispersion(res)
+testZeroInflation(res)
+
+## ---- error=TRUE--------------------------------------------------------------
+m5 <- glmmTMB(SiblingNegotiation ~ FoodTreatment*SexParent + offset(log(BroodSize)) + (1|Nest), dispformula = ~ FoodTreatment , ziformula = ~ FoodTreatment + SexParent,  data=Owls , family = nbinom1)
+
+res <- simulateResiduals(m4, plot = T)
+par(mfrow = c(1,3))
+plotResiduals(res, Owls$FoodTreatment)
+testDispersion(res)
+testZeroInflation(res)
 
 ## -----------------------------------------------------------------------------
 testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = 5, family = binomial(), randomEffectVariance = 3, numGroups = 25)
