@@ -4,6 +4,7 @@
 #' 
 #' @param x an object of class DHARMa with simulated residuals created by \code{\link{simulateResiduals}}
 #' @param ... further options for \code{\link{plotResiduals}}. Consider in particular parameters quantreg, rank and asFactor. xlab, ylab and main cannot be changed when using plot.DHARMa, but can be changed when using plotResiduals.
+#' @param title The title for both panels (plotted via mtext, outer = T)
 #' 
 #' @details The function creates a plot with two panels. The left panel is a uniform qq plot (calling \code{\link{plotQQunif}}), and the right panel shows residuals against predicted values (calling \code{\link{plotResiduals}}), with outliers highlighted in red. 
 #' 
@@ -22,15 +23,15 @@
 #' @import graphics
 #' @import utils
 #' @export
-plot.DHARMa <- function(x, ...){
+plot.DHARMa <- function(x, title = "DHARMa residual", ...){
 
   oldpar <- par(mfrow = c(1,2), oma = c(0,1,2,1))
   on.exit(par(oldpar))
-
+  
   plotQQunif(x)
   plotResiduals(x, ...)
 
-  mtext("DHARMa residual diagnostics", outer = T)
+  mtext(title, outer = T)
 }
 
 
@@ -97,10 +98,20 @@ plotSimulatedResiduals <- function(simulationOutput, ...){
 #' @example inst/examples/plotsHelp.R
 #' @export
 plotQQunif <- function(simulationOutput, testUniformity = T, testOutliers = T, testDispersion = T, ...){
+  
+  a <- list(...)
+  a$pch = checkDots("pch", 2, ...)
+  a$bty = checkDots("bty", "n", ...)
+  a$logscale = checkDots("logscale", F, ...)
+  a$col = checkDots("col", "black", ...)
+  a$main = checkDots("main", "QQ plot residuals", ...)
+  a$cex.main = checkDots("cex.main", 1, ...)
+  a$xlim = checkDots("xlim", c(0,1), ...)
+  a$ylim = checkDots("ylim", c(0,1), ...)
 
   simulationOutput = ensureDHARMa(simulationOutput, convert = "Model")
-
-  gap::qqunif(simulationOutput$scaledResiduals,pch=2,bty="n", logscale = F, col = "black", cex = 0.6, main = "QQ plot residuals", cex.main = 1, ...)
+  
+  do.call(gap::qqunif, append(list(simulationOutput$scaledResiduals), a))
 
   if(testUniformity == TRUE){
     temp = testUniformity(simulationOutput, plot = F)
@@ -167,10 +178,10 @@ plotResiduals <- function(simulationOutput, form = NULL, quantreg = NULL, rank =
   ##### Checks #####
 
   a <- list(...)
-  a$ylab = checkDots("ylab", "Standardized residual", ...)
-  if(is.null(form)){
-    a$xlab = checkDots("xlab", ifelse(rank, "Model predictions (rank transformed)", "Model predictions"), ...)
-  }
+  a$ylab = checkDots("ylab", "DHARMa residual", ...)
+  a$xlab = checkDots("xlab", ifelse(is.null(form), "Model predictions", 
+                                    gsub(".*[$]","",deparse(substitute(form)))), ...)
+  if(rank == T) a$xlab = paste(a$xlab, "(rank transformed)")
 
   simulationOutput = ensureDHARMa(simulationOutput, convert = T)
   res = simulationOutput$scaledResiduals
@@ -185,6 +196,7 @@ plotResiduals <- function(simulationOutput, form = NULL, quantreg = NULL, rank =
     if (rank == T){
       pred = rank(pred, ties.method = "average")
       pred = pred / max(pred)
+      a$xlim = checkDots("xlim", c(0,1), ...)
     }
 
     nuniq = length(unique(pred))
@@ -202,8 +214,7 @@ plotResiduals <- function(simulationOutput, form = NULL, quantreg = NULL, rank =
 
   blackcol = rgb(0,0,0, alpha = max(0.1, 1 - 3 * length(res) / switchScatter))
 
-  # Note to self: why is this wrapped in do.call?
-  # Answer: because of the check dots, needs to be consolidate, e.g. for testCategorical
+  # Note to self: wrapped in do.call because of the check dots, needs to be consolidate, e.g. for testCategorical
 
   # categorical plot
   if(is.factor(pred)){
@@ -232,7 +243,7 @@ plotResiduals <- function(simulationOutput, form = NULL, quantreg = NULL, rank =
 
   ##### Quantile regressions #####
 
-  main = checkDots("main", "Residual vs. predicted", ...)
+  main = checkDots("main", ifelse(is.null(form), "Residual vs. predicted", "Residual vs. predictor"), ...)
   out = NULL
 
   if(is.numeric(pred)){

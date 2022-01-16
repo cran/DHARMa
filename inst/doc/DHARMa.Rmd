@@ -394,7 +394,7 @@ So far, most of the things that we have tested could also have been detected wit
 Heteroscedasticity means that there is a systematic dependency of the dispersion / variance on another variable in the model. It is not sufficiently appreciated that also binomial or Poisson models can show heteroscedasticity. Basically, it means that the level of over/underdispersion depends on another parameter. Here an example where we create such data 
 
 ```{r}
-testData = createData(sampleSize = 500, intercept = 0, overdispersion = function(x){return(rnorm(length(x), sd = 2 * abs(x)))}, family = poisson(), randomEffectVariance = 0)
+testData = createData(sampleSize = 500, intercept = -1.5,  overdispersion = function(x){return(rnorm(length(x), sd = 1 * abs(x)))}, family = poisson(), randomEffectVariance = 0)
 fittedModel <- glm(observedResponse ~ Environment1 , family = "poisson", data = testData)
 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
@@ -787,7 +787,9 @@ lme4 model classes are fully supported.
 
 ## mgcv
 
-mgcv is partly supported. Non-standard distributions are not supported, because mgcv doesn't implement a simulate function for those.
+When using mgcv with DHARMa, it is highly recommended to also install mgcViz. Since version 0.4.5, this will allow DHARMa to fall back on the simulate.gam function in mgcViz, which is more general than the default simulate function. For example, without mgcViz, it will not be possible to simulate from mgcv::gam objects fitted with extended families. 
+
+If you absolutely want to use DHARMa without mgcViz, you should make sure that simulate(model) works correctly for the model object for which you want to calculate DHARMa residuals. 
 
 ## glmmTMB
 

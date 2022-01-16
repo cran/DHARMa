@@ -116,7 +116,7 @@ countOnes <- function(x) sum(x == 1)  # testing for number of 1s
 testGeneric(simulationOutput, summary = countOnes, alternative = "greater") # 1-inflation
 
 ## -----------------------------------------------------------------------------
-testData = createData(sampleSize = 500, intercept = 0, overdispersion = function(x){return(rnorm(length(x), sd = 2 * abs(x)))}, family = poisson(), randomEffectVariance = 0)
+testData = createData(sampleSize = 500, intercept = -1.5,  overdispersion = function(x){return(rnorm(length(x), sd = 1 * abs(x)))}, family = poisson(), randomEffectVariance = 0)
 fittedModel <- glm(observedResponse ~ Environment1 , family = "poisson", data = testData)
 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)

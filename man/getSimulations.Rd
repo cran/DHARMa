@@ -4,6 +4,7 @@
 \alias{getSimulations}
 \alias{getSimulations.default}
 \alias{getSimulations.negbin}
+\alias{getSimulations.gam}
 \alias{getSimulations.lmerMod}
 \alias{getSimulations.glmmTMB}
 \alias{getSimulations.HLfit}
@@ -15,6 +16,9 @@ getSimulations(object, nsim = 1, type = c("normal", "refit"), ...)
 \method{getSimulations}{default}(object, nsim = 1, type = c("normal", "refit"), ...)
 
 \method{getSimulations}{negbin}(object, nsim = 1, type = c("normal", "refit"), ...)
+
+\method{getSimulations}{gam}(object, nsim = 1, type = c("normal", "refit"),
+  mgcViz = TRUE, ...)
 
 \method{getSimulations}{lmerMod}(object, nsim = 1, type = c("normal", "refit"), ...)
 
@@ -32,6 +36,8 @@ getSimulations(object, nsim = 1, type = c("normal", "refit"), ...)
 \item{type}{if simulations should be prepared for getQuantile or for refit}
 
 \item{...}{additional parameters to be passed on, usually to the simulate function of the respective model class}
+
+\item{mgcViz}{whether simulations should be created with mgcViz (if mgcViz is available)}
 }
 \value{
 a matrix with simulations
