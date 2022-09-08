@@ -12,11 +12,23 @@
 
 <meta name="author" content="Florian Hartig, Theoretical Ecology, University of Regensburg website" />
 
-<meta name="date" content="2022-01-16" />
+<meta name="date" content="2022-09-08" />
 
 <title>DHARMa for Bayesians</title>
 
-<script src="data:application/javascript;base64,Ly8gUGFuZG9jIDIuOSBhZGRzIGF0dHJpYnV0ZXMgb24gYm90aCBoZWFkZXIgYW5kIGRpdi4gV2UgcmVtb3ZlIHRoZSBmb3JtZXIgKHRvCi8vIGJlIGNvbXBhdGlibGUgd2l0aCB0aGUgYmVoYXZpb3Igb2YgUGFuZG9jIDwgMi44KS4KZG9jdW1lbnQuYWRkRXZlbnRMaXN0ZW5lcignRE9NQ29udGVudExvYWRlZCcsIGZ1bmN0aW9uKGUpIHsKICB2YXIgaHMgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yQWxsKCJkaXYuc2VjdGlvbltjbGFzcyo9J2xldmVsJ10gPiA6Zmlyc3QtY2hpbGQiKTsKICB2YXIgaSwgaCwgYTsKICBmb3IgKGkgPSAwOyBpIDwgaHMubGVuZ3RoOyBpKyspIHsKICAgIGggPSBoc1tpXTsKICAgIGlmICghL15oWzEtNl0kL2kudGVzdChoLnRhZ05hbWUpKSBjb250aW51ZTsgIC8vIGl0IHNob3VsZCBiZSBhIGhlYWRlciBoMS1oNgogICAgYSA9IGguYXR0cmlidXRlczsKICAgIHdoaWxlIChhLmxlbmd0aCA+IDApIGgucmVtb3ZlQXR0cmlidXRlKGFbMF0ubmFtZSk7CiAgfQp9KTsK"></script>
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
 
 <style type="text/css">
   code{white-space: pre-wrap;}
@@ -26,6 +38,7 @@
   div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
   ul.task-list{list-style: none;}
     </style>
+
 
 
 <style type="text/css">
@@ -137,7 +150,187 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 
-<link rel="stylesheet" href="data:text/css,body%20%7B%0Abackground%2Dcolor%3A%20%23fff%3B%0Amargin%3A%201em%20auto%3B%0Amax%2Dwidth%3A%20700px%3B%0Aoverflow%3A%20visible%3B%0Apadding%2Dleft%3A%202em%3B%0Apadding%2Dright%3A%202em%3B%0Afont%2Dfamily%3A%20%22Open%20Sans%22%2C%20%22Helvetica%20Neue%22%2C%20Helvetica%2C%20Arial%2C%20sans%2Dserif%3B%0Afont%2Dsize%3A%2014px%3B%0Aline%2Dheight%3A%201%2E35%3B%0A%7D%0A%23TOC%20%7B%0Aclear%3A%20both%3B%0Amargin%3A%200%200%2010px%2010px%3B%0Apadding%3A%204px%3B%0Awidth%3A%20400px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Aborder%2Dradius%3A%205px%3B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Afont%2Dsize%3A%2013px%3B%0Aline%2Dheight%3A%201%2E3%3B%0A%7D%0A%23TOC%20%2Etoctitle%20%7B%0Afont%2Dweight%3A%20bold%3B%0Afont%2Dsize%3A%2015px%3B%0Amargin%2Dleft%3A%205px%3B%0A%7D%0A%23TOC%20ul%20%7B%0Apadding%2Dleft%3A%2040px%3B%0Amargin%2Dleft%3A%20%2D1%2E5em%3B%0Amargin%2Dtop%3A%205px%3B%0Amargin%2Dbottom%3A%205px%3B%0A%7D%0A%23TOC%20ul%20ul%20%7B%0Amargin%2Dleft%3A%20%2D2em%3B%0A%7D%0A%23TOC%20li%20%7B%0Aline%2Dheight%3A%2016px%3B%0A%7D%0Atable%20%7B%0Amargin%3A%201em%20auto%3B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dcolor%3A%20%23DDDDDD%3B%0Aborder%2Dstyle%3A%20outset%3B%0Aborder%2Dcollapse%3A%20collapse%3B%0A%7D%0Atable%20th%20%7B%0Aborder%2Dwidth%3A%202px%3B%0Apadding%3A%205px%3B%0Aborder%2Dstyle%3A%20inset%3B%0A%7D%0Atable%20td%20%7B%0Aborder%2Dwidth%3A%201px%3B%0Aborder%2Dstyle%3A%20inset%3B%0Aline%2Dheight%3A%2018px%3B%0Apadding%3A%205px%205px%3B%0A%7D%0Atable%2C%20table%20th%2C%20table%20td%20%7B%0Aborder%2Dleft%2Dstyle%3A%20none%3B%0Aborder%2Dright%2Dstyle%3A%20none%3B%0A%7D%0Atable%20thead%2C%20table%20tr%2Eeven%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Ap%20%7B%0Amargin%3A%200%2E5em%200%3B%0A%7D%0Ablockquote%20%7B%0Abackground%2Dcolor%3A%20%23f6f6f6%3B%0Apadding%3A%200%2E25em%200%2E75em%3B%0A%7D%0Ahr%20%7B%0Aborder%2Dstyle%3A%20solid%3B%0Aborder%3A%20none%3B%0Aborder%2Dtop%3A%201px%20solid%20%23777%3B%0Amargin%3A%2028px%200%3B%0A%7D%0Adl%20%7B%0Amargin%2Dleft%3A%200%3B%0A%7D%0Adl%20dd%20%7B%0Amargin%2Dbottom%3A%2013px%3B%0Amargin%2Dleft%3A%2013px%3B%0A%7D%0Adl%20dt%20%7B%0Afont%2Dweight%3A%20bold%3B%0A%7D%0Aul%20%7B%0Amargin%2Dtop%3A%200%3B%0A%7D%0Aul%20li%20%7B%0Alist%2Dstyle%3A%20circle%20outside%3B%0A%7D%0Aul%20ul%20%7B%0Amargin%2Dbottom%3A%200%3B%0A%7D%0Apre%2C%20code%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0Aborder%2Dradius%3A%203px%3B%0Acolor%3A%20%23333%3B%0Awhite%2Dspace%3A%20pre%2Dwrap%3B%20%0A%7D%0Apre%20%7B%0Aborder%2Dradius%3A%203px%3B%0Amargin%3A%205px%200px%2010px%200px%3B%0Apadding%3A%2010px%3B%0A%7D%0Apre%3Anot%28%5Bclass%5D%29%20%7B%0Abackground%2Dcolor%3A%20%23f7f7f7%3B%0A%7D%0Acode%20%7B%0Afont%2Dfamily%3A%20Consolas%2C%20Monaco%2C%20%27Courier%20New%27%2C%20monospace%3B%0Afont%2Dsize%3A%2085%25%3B%0A%7D%0Ap%20%3E%20code%2C%20li%20%3E%20code%20%7B%0Apadding%3A%202px%200px%3B%0A%7D%0Adiv%2Efigure%20%7B%0Atext%2Dalign%3A%20center%3B%0A%7D%0Aimg%20%7B%0Abackground%2Dcolor%3A%20%23FFFFFF%3B%0Apadding%3A%202px%3B%0Aborder%3A%201px%20solid%20%23DDDDDD%3B%0Aborder%2Dradius%3A%203px%3B%0Aborder%3A%201px%20solid%20%23CCCCCC%3B%0Amargin%3A%200%205px%3B%0A%7D%0Ah1%20%7B%0Amargin%2Dtop%3A%200%3B%0Afont%2Dsize%3A%2035px%3B%0Aline%2Dheight%3A%2040px%3B%0A%7D%0Ah2%20%7B%0Aborder%2Dbottom%3A%204px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Apadding%2Dbottom%3A%202px%3B%0Afont%2Dsize%3A%20145%25%3B%0A%7D%0Ah3%20%7B%0Aborder%2Dbottom%3A%202px%20solid%20%23f7f7f7%3B%0Apadding%2Dtop%3A%2010px%3B%0Afont%2Dsize%3A%20120%25%3B%0A%7D%0Ah4%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23f7f7f7%3B%0Amargin%2Dleft%3A%208px%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Ah5%2C%20h6%20%7B%0Aborder%2Dbottom%3A%201px%20solid%20%23ccc%3B%0Afont%2Dsize%3A%20105%25%3B%0A%7D%0Aa%20%7B%0Acolor%3A%20%230033dd%3B%0Atext%2Ddecoration%3A%20none%3B%0A%7D%0Aa%3Ahover%20%7B%0Acolor%3A%20%236666ff%3B%20%7D%0Aa%3Avisited%20%7B%0Acolor%3A%20%23800080%3B%20%7D%0Aa%3Avisited%3Ahover%20%7B%0Acolor%3A%20%23BB00BB%3B%20%7D%0Aa%5Bhref%5E%3D%22http%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0Aa%5Bhref%5E%3D%22https%3A%22%5D%20%7B%0Atext%2Ddecoration%3A%20underline%3B%20%7D%0A%0Acode%20%3E%20span%2Ekw%20%7B%20color%3A%20%23555%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Edt%20%7B%20color%3A%20%23902000%3B%20%7D%20%0Acode%20%3E%20span%2Edv%20%7B%20color%3A%20%2340a070%3B%20%7D%20%0Acode%20%3E%20span%2Ebn%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Efl%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Ech%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Est%20%7B%20color%3A%20%23d14%3B%20%7D%20%0Acode%20%3E%20span%2Eco%20%7B%20color%3A%20%23888888%3B%20font%2Dstyle%3A%20italic%3B%20%7D%20%0Acode%20%3E%20span%2Eot%20%7B%20color%3A%20%23007020%3B%20%7D%20%0Acode%20%3E%20span%2Eal%20%7B%20color%3A%20%23ff0000%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Efu%20%7B%20color%3A%20%23900%3B%20font%2Dweight%3A%20bold%3B%20%7D%20%0Acode%20%3E%20span%2Eer%20%7B%20color%3A%20%23a61717%3B%20background%2Dcolor%3A%20%23e3d2d2%3B%20%7D%20%0A" type="text/css" />
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
 
 
 
@@ -150,36 +343,60 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 
 
 <h1 class="title toc-ignore">DHARMa for Bayesians</h1>
-<h4 class="author">Florian Hartig, Theoretical Ecology, University of Regensburg <a href="https://www.uni-regensburg.de/biologie-vorklinische-medizin/theoretische-oekologie/mitarbeiter/hartig/">website</a></h4>
-<h4 class="date">2022-01-16</h4>
+<h4 class="author">Florian Hartig, Theoretical Ecology, University of
+Regensburg <a href="https://www.uni-regensburg.de/biologie-vorklinische-medizin/theoretische-oekologie/mitarbeiter/hartig/">website</a></h4>
+<h4 class="date">2022-09-08</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
-<p>The ‘DHARMa’ package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models. This Vignette describes how to user DHARMa vor checking Bayesian models. It is recommended to read this AFTER the general DHARMa vignette, as all comments made there (in pacticular regarding the interpretation of the residuals) also apply to Bayesian models.</p>
+<p>The ‘DHARMa’ package uses a simulation-based approach to create
+readily interpretable scaled (quantile) residuals for fitted
+(generalized) linear mixed models. This Vignette describes how to user
+DHARMa vor checking Bayesian models. It is recommended to read this
+AFTER the general DHARMa vignette, as all comments made there (in
+pacticular regarding the interpretation of the residuals) also apply to
+Bayesian models.</p>
 </div>
 
 
 <div id="TOC">
 <ul>
-<li><a href="#basic-workflow">Basic workflow</a>
+<li><a href="#basic-workflow" id="toc-basic-workflow">Basic workflow</a>
 <ul>
-<li><a href="#example-in-jags">Example in Jags</a></li>
-<li><a href="#exercise">Exercise</a></li>
+<li><a href="#example-in-jags" id="toc-example-in-jags">Example in
+Jags</a></li>
+<li><a href="#exercise" id="toc-exercise">Exercise</a></li>
 </ul></li>
-<li><a href="#conditional-vs.-unconditional-simulations-in-hierarchical-models">Conditional vs. unconditional simulations in hierarchical models</a></li>
-<li><a href="#statistical-differences-between-bayesian-vs.-mle-quantile-residuals">Statistical differences between Bayesian vs. MLE quantile residuals</a></li>
+<li><a href="#conditional-vs.-unconditional-simulations-in-hierarchical-models" id="toc-conditional-vs.-unconditional-simulations-in-hierarchical-models">Conditional
+vs. unconditional simulations in hierarchical models</a></li>
+<li><a href="#statistical-differences-between-bayesian-vs.-mle-quantile-residuals" id="toc-statistical-differences-between-bayesian-vs.-mle-quantile-residuals">Statistical
+differences between Bayesian vs. MLE quantile residuals</a></li>
 </ul>
 </div>
 
 <div id="basic-workflow" class="section level1">
 <h1>Basic workflow</h1>
-<p>In principle, DHARMa residuals can be calculated and interpreted for Bayesian models in very much the same way as for frequentist models. Therefore, all comments regarding tests, residual interpretation etc. from the main vignette are equally valid for Bayesian model checks. There are some minor differences regarding the expected null distribution of the residuals, in particular in the low data limit, but I believe that for most people, these are of less concern.</p>
-<p>The main difference for a Bayesian user is that, unlike for users of directly supported regression packages such as lme4 or glmmTMB, most Bayesian users will have to create the simulations for the fitted model themselves and then feed them into DHARMa by hand. The basic workflow for Bayesians that work with BUGS, JAGS, STAN or similar is:</p>
+<p>In principle, DHARMa residuals can be calculated and interpreted for
+Bayesian models in very much the same way as for frequentist models.
+Therefore, all comments regarding tests, residual interpretation etc.
+from the main vignette are equally valid for Bayesian model checks.
+There are some minor differences regarding the expected null
+distribution of the residuals, in particular in the low data limit, but
+I believe that for most people, these are of less concern.</p>
+<p>The main difference for a Bayesian user is that, unlike for users of
+directly supported regression packages such as lme4 or glmmTMB, most
+Bayesian users will have to create the simulations for the fitted model
+themselves and then feed them into DHARMa by hand. The basic workflow
+for Bayesians that work with BUGS, JAGS, STAN or similar is:</p>
 <ol style="list-style-type: decimal">
 <li>Create posterior predictive simulations for your model</li>
 <li>Read these in with the createDHARMa function</li>
 <li>Interpret those as described in the main vignette</li>
 </ol>
-<p>This is more easy as it sounds. For the major Bayesian samplers (e.g. BUGS, JAGS, STAN), it amounts to adding a block with data simulations to the model, and observing those during the MCMC sampling. Then, feed the simulations into DHARMa via createDHARMa, and all else will work pretty much the same as in the main vignette.</p>
+<p>This is more easy as it sounds. For the major Bayesian samplers
+(e.g. BUGS, JAGS, STAN), it amounts to adding a block with data
+simulations to the model, and observing those during the MCMC sampling.
+Then, feed the simulations into DHARMa via createDHARMa, and all else
+will work pretty much the same as in the main vignette.</p>
 <div id="example-in-jags" class="section level2">
 <h2>Example in Jags</h2>
 <p>Here is an example, with JAGS</p>
@@ -224,28 +441,44 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb1-39"><a href="#cb1-39" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb1-40"><a href="#cb1-40" aria-hidden="true" tabindex="-1"></a>sim <span class="ot">=</span> <span class="fu">createDHARMa</span>(<span class="at">simulatedResponse =</span> <span class="fu">t</span>(posteriorPredSim), <span class="at">observedResponse =</span> dat<span class="sc">$</span>observedResponse, <span class="at">fittedPredictedResponse =</span> <span class="fu">apply</span>(posteriorPredDistr, <span class="dv">2</span>, median), <span class="at">integerResponse =</span> T)</span>
 <span id="cb1-41"><a href="#cb1-41" aria-hidden="true" tabindex="-1"></a><span class="fu">plot</span>(sim)</span></code></pre></div>
-<p>In the created plots, you will see overdispersion, which is completely expected, as the simulated data has overdispersion and a RE, which is not accounted for by the Jags model.</p>
+<p>In the created plots, you will see overdispersion, which is
+completely expected, as the simulated data has overdispersion and a RE,
+which is not accounted for by the Jags model.</p>
 </div>
 <div id="exercise" class="section level2">
 <h2>Exercise</h2>
 <p>As an exercise, you could now:</p>
 <ul>
 <li>Add a RE</li>
-<li>Account for overdispersion, e.g. via an OLRE or a negative Binomial</li>
+<li>Account for overdispersion, e.g. via an OLRE or a negative
+Binomial</li>
 </ul>
 <p>And check how the residuals improve.</p>
 </div>
 </div>
 <div id="conditional-vs.-unconditional-simulations-in-hierarchical-models" class="section level1">
-<h1>Conditional vs. unconditional simulations in hierarchical models</h1>
-<p>The most important consideration in using DHARMa with Bayesian models is how to create the simulations. You can see in my jags code that the block</p>
+<h1>Conditional vs. unconditional simulations in hierarchical
+models</h1>
+<p>The most important consideration in using DHARMa with Bayesian models
+is how to create the simulations. You can see in my jags code that the
+block</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>  <span class="co"># Posterior predictive simulations </span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nobs) {</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>    observedResponseSim[i]<span class="sc">~</span><span class="fu">dpois</span>(lambda[i])</span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
-<p>performs the posterior predictive simulations. Here, we just take the predicted lambda (mean perdictions) during the MCMC simulations and sample from the assumed distribution. This will works for any non-hierarchical model.</p>
-<p>When we move to hierarchical or multi-level models, including GLMMs, the issue of simulation becomes a bit more complicated. In a hierarchical model, there are several random processes that sit on top of each other. In the same way as explained in the main vignette at the point conditional / unconditional simulations, we will have to decide which of these random processes should be included in the posterior predictive simulations.</p>
-<p>As an example, imagine we add a RE in the likelihood of the previous model, to account for the group structure in the data.</p>
+<p>performs the posterior predictive simulations. Here, we just take the
+predicted lambda (mean perdictions) during the MCMC simulations and
+sample from the assumed distribution. This will works for any
+non-hierarchical model.</p>
+<p>When we move to hierarchical or multi-level models, including GLMMs,
+the issue of simulation becomes a bit more complicated. In a
+hierarchical model, there are several random processes that sit on top
+of each other. In the same way as explained in the main vignette at the
+point conditional / unconditional simulations, we will have to decide
+which of these random processes should be included in the posterior
+predictive simulations.</p>
+<p>As an example, imagine we add a RE in the likelihood of the previous
+model, to account for the group structure in the data.</p>
 <div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nobs){</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>    observedResponse[i] <span class="sc">~</span> <span class="fu">dpois</span>(lambda[i])  <span class="co"># poisson error distribution</span></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a>    lambda[i] <span class="ot">&lt;-</span> <span class="fu">exp</span>(eta[i]) <span class="co"># inverse link function</span></span>
@@ -255,7 +488,14 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nGroups){</span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a>   RE[j] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>,tauRE)  </span>
 <span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
-<p>The predictions lambda[i] now depend on a lower-level stochastic effect, which is described by RE[j] ~ dnorm(0,tauRE). We can now decide to create posterior predictive simulations conditional on posterior estimates RE[j] (conditional simulations), in which case we would have to change nothing in the block for the posterior predictive simulations. Alternatively, we can decide that we want to re-simulate the RE (unconditional simulations), in which case we have to copy the entire structure of the likelihood in the predictions</p>
+<p>The predictions lambda[i] now depend on a lower-level stochastic
+effect, which is described by RE[j] ~ dnorm(0,tauRE). We can now decide
+to create posterior predictive simulations conditional on posterior
+estimates RE[j] (conditional simulations), in which case we would have
+to change nothing in the block for the posterior predictive simulations.
+Alternatively, we can decide that we want to re-simulate the RE
+(unconditional simulations), in which case we have to copy the entire
+structure of the likelihood in the predictions</p>
 <div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>  <span class="cf">for</span>(j <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nGroups){</span>
 <span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>   RESim[j] <span class="sc">~</span> <span class="fu">dnorm</span>(<span class="dv">0</span>,tauRE)  </span>
 <span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  }</span>
@@ -265,27 +505,66 @@ code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warni
 <span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a>    lambdaSim[i] <span class="ot">&lt;-</span> <span class="fu">exp</span>(etaSim[i]) </span>
 <span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a>    etaSim[i] <span class="ot">&lt;-</span> intercept <span class="sc">+</span> env<span class="sc">*</span>Environment1[i] <span class="sc">+</span> RESim[group[i]] </span>
 <span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a>  }</span></code></pre></div>
-<p>Essentially, you can remember that if you want full (uncoditional) simulations, you basically have to copy the entire likelihood of the hierarchical model, minus the priors, and sample along the hierarchical model structure. If you want to condition on a part of this structure, just cut the DAG at the point on which you want to condition on.</p>
+<p>Essentially, you can remember that if you want full (uncoditional)
+simulations, you basically have to copy the entire likelihood of the
+hierarchical model, minus the priors, and sample along the hierarchical
+model structure. If you want to condition on a part of this structure,
+just cut the DAG at the point on which you want to condition on.</p>
 </div>
 <div id="statistical-differences-between-bayesian-vs.-mle-quantile-residuals" class="section level1">
-<h1>Statistical differences between Bayesian vs. MLE quantile residuals</h1>
-<p>A common question is if there are differences between Bayesian and MLE quantile residuals.</p>
-<p>First of all, note that MLE and Bayesian quantile residuals are not exactly identical. The main difference is in how the simulation of the data under the fitted model are performed:</p>
+<h1>Statistical differences between Bayesian vs. MLE quantile
+residuals</h1>
+<p>A common question is if there are differences between Bayesian and
+MLE quantile residuals.</p>
+<p>First of all, note that MLE and Bayesian quantile residuals are not
+exactly identical. The main difference is in how the simulation of the
+data under the fitted model are performed:</p>
 <ul>
-<li><p>For models fitted by MLE, simulations in DHARMa are with the MLE (point estimate)</p></li>
-<li><p>For models fitted with Bayes, simulations are practically always performed while also drawing from the posterior parameter uncertainty (as a point estimate is not available).</p></li>
+<li><p>For models fitted by MLE, simulations in DHARMa are with the MLE
+(point estimate)</p></li>
+<li><p>For models fitted with Bayes, simulations are practically always
+performed while also drawing from the posterior parameter uncertainty
+(as a point estimate is not available).</p></li>
 </ul>
-<p>Thus, Bayesian posterior predictive simulations include the parametric uncertainty of the model, additionally to the sampling uncertainty. From this we can directly conclude that Bayesian and MLE quantile residuals are asymptotically identical (and via the usual arguments uniformly distributed), but become more different the smaller n becomes.</p>
-<p>To examine what those differences are, let’s imagine that we start with a situation of infinite data. In this case, we have a “sharp” posterior that can be viewed as identical to the MLE.</p>
+<p>Thus, Bayesian posterior predictive simulations include the
+parametric uncertainty of the model, additionally to the sampling
+uncertainty. From this we can directly conclude that Bayesian and MLE
+quantile residuals are asymptotically identical (and via the usual
+arguments uniformly distributed), but become more different the smaller
+n becomes.</p>
+<p>To examine what those differences are, let’s imagine that we start
+with a situation of infinite data. In this case, we have a “sharp”
+posterior that can be viewed as identical to the MLE.</p>
 <p>If we reduce the number of data, there are two things happening</p>
 <ol style="list-style-type: decimal">
-<li><p>The posterior gets wider, with the likelihood component being normally distributed, at least initially</p></li>
-<li><p>The influence of the prior increases, the faster the stronger the prior is.</p></li>
+<li><p>The posterior gets wider, with the likelihood component being
+normally distributed, at least initially</p></li>
+<li><p>The influence of the prior increases, the faster the stronger the
+prior is.</p></li>
 </ol>
-<p>Thus, if we reduce the data, for weak / uninformative priors, we will simulate data while sampling parameters from a normal distribution around the MLE, while for strong priors, we will effectively sample data while drawing parameters of the model from the prior.</p>
-<p>In particular in the latter case (prior dominates, which can be checked via prior sensitivity analysis), you may see residual patterns that are caused by the prior, even though the model structure is correct. In some sense, you could say that the residuals check if the combination of prior + structure is compatible with the data. It’s a philosophical debate how to react on such a deviation, as the prior is not really negotiable in a Bayesian analysis.</p>
-<p>Of course, also the MLE distribution might get problems in low data situations, but I would argue that MLE is usually only used anyway if the MLE is reasonably sharp. In practice, I have self experienced problems with MLE estimates. It’s a bit different in the Bayesian case, where it is possible and often done to fit very complex models with limited data. In this case, many of the general issues in defining null distributions for Bayesian p-values (as, e.g., reviewed in <a href="https://doi.org/10.1002/ecm.1314">Conn et al., 2018</a>) apply.</p>
-<p>I would add though that while I find it important that users are aware of those differences, I have found that in practice these issues are small, and usually overruled by the much stronger effects of model error.</p>
+<p>Thus, if we reduce the data, for weak / uninformative priors, we will
+simulate data while sampling parameters from a normal distribution
+around the MLE, while for strong priors, we will effectively sample data
+while drawing parameters of the model from the prior.</p>
+<p>In particular in the latter case (prior dominates, which can be
+checked via prior sensitivity analysis), you may see residual patterns
+that are caused by the prior, even though the model structure is
+correct. In some sense, you could say that the residuals check if the
+combination of prior + structure is compatible with the data. It’s a
+philosophical debate how to react on such a deviation, as the prior is
+not really negotiable in a Bayesian analysis.</p>
+<p>Of course, also the MLE distribution might get problems in low data
+situations, but I would argue that MLE is usually only used anyway if
+the MLE is reasonably sharp. In practice, I have self experienced
+problems with MLE estimates. It’s a bit different in the Bayesian case,
+where it is possible and often done to fit very complex models with
+limited data. In this case, many of the general issues in defining null
+distributions for Bayesian p-values (as, e.g., reviewed in <a href="https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecm.1314">Conn
+et al., 2018</a>) apply.</p>
+<p>I would add though that while I find it important that users are
+aware of those differences, I have found that in practice these issues
+are small, and usually overruled by the much stronger effects of model
+error.</p>
 </div>
 
 

@@ -193,6 +193,7 @@ To support the visual inspection of the residuals, the DHARMa package provides a
 
 See the help of the functions and further comments below for a more detailed description. 
 
+
 ## Simulation options
 
 There are a few important technical details regarding how the simulations are performed, in particular regarding the treatments of random effects and integer responses. It is strongly recommended to read the help of
@@ -225,7 +226,9 @@ For controlling how many levels should be re-simulated, the simulateResidual fun
 simulationOutput <- simulateResiduals(fittedModel = fittedModel, n = 250, use.u = T)
 ```
 
-If the model is correctly specified and the fitting procedure is unbiased (disclaimer: GLMM estimators are not always unbiased), the simulated residuals should be flat regardless how many hierarchical levels we re-simulate. The most thorough procedure would be therefore to test all possible options. If testing only one option, I would recommend to re-simulate all levels, because this essentially tests the model structure as a whole. This is the default setting in the DHARMa package. A potential drawback is that re-simulating the random effects creates more variability, which may reduce power for detecting problems in the upper-level stochastic processes.
+If the model is correctly specified and the fitting procedure is unbiased (disclaimer: GLMM estimators are not always unbiased), the simulated residuals should be flat regardless how many hierarchical levels we re-simulate. The most thorough procedure would be therefore to test all possible options. If testing only one option, I would recommend to re-simulate all levels, because this essentially tests the model structure as a whole. This is the default setting in the DHARMa package. A potential drawback is that re-simulating the random effects creates more variability, which may reduce power for detecting problems in the upper-level stochastic processes, in particular overdispersion (see section on dispersion tests below).
+
+*Note:* Although unconditional residuals implicitly also test the normal distribution of the REs, it is probably not a bad idea to look addditionally check for normality of the RE distribution. As this is not based on quantile residuals, there is no special DHARMa function for this, so you should just extract the REs, and then run e.g. a Shapiro test. 
 
 #### Integer treatment / randomization
 
@@ -293,7 +296,9 @@ simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
 ```
 
-This is an example of underdispersion. Here, we get too many residuals around 0.5, which means that we are not getting as many residuals as we would expect in the tail of the distribution than expected from the fitted model.  
+If you see this pattern, note that overdispersion is often caused by model misfit. Thus, before moving to a GLM with variable dispersion (for count data this would typically be a negative binomial), you should check your model for misfit, e.g. by plotting residuals against all predictors using plotResiduals().
+
+Next, this is an example of underdispersion. Here, we get too many residuals around 0.5, which means that we are not getting as many residuals as we would expect in the tail of the distribution than expected from the fitted model.  
 
 ```{r}
 testData = createData(sampleSize = 500, intercept=0, fixedEffects = 2, overdispersion = 0, family = poisson(), roundPoissonVariance = 0.001, randomEffectVariance = 0)
@@ -302,6 +307,10 @@ fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) , family = "poi
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
 ```
+
+If you see this pattern, note that a common reason for underdispersion is overfitting, i.e. your model is too complex. Other possible explanations to check for include zero-inflation (best to check by comparing to a ZIP model, but see also DHARMa::testZeroInflation), non-independence of the data (e.g. temporal autocorrelation, check via DHARMa:: testTemporalAutocorrelation) that your predictors can use to overfit, or that your data-generating process is simply not a Poisson process.
+
+From a technical side, underdispersion is not as concerning as over dispersion, as it will usually bias p-values to the conservative side, but if your goal is to get a good power, you may want to consider a simpler model. If that is not helping, you can move to a distribution for underdispersed count data (e.g. Conway-Maxwell-Poisson, generalized Poisson).
 
 ### Formal tests for over/underdispersion
 
@@ -327,8 +336,7 @@ As support for these statements, here results of the simulation, which compares 
 
 <img src="dispersion.png" width="700">
 
-Thus, the current recommendation is: for most users, use the default DHARMa test, but create simulations conditionally. 
-
+Thus, my current recommendation is: for most users, use the default DHARMa test, but create simulations conditionally. 
 
 ## Zero-inflation / k-inflation or deficits
 
@@ -708,7 +716,7 @@ set.seed(123)
 
 # created data and fit with a missing predictor (Environment2)
 
-testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = c(1,3), family = binomial(), randomEffectVariance = 3, numGroups = 50)
+testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = c(0,3), family = binomial(), randomEffectVariance = 3, numGroups = 50)
 fittedModel <- glm(observedResponse ~ Environment1, family = "binomial", data = testData)
 
 res <- simulateResiduals(fittedModel = fittedModel)
@@ -748,32 +756,8 @@ res3 = recalculateResiduals(res , group = grouping)
 plot(res3)
 ```
 
-## Bayesian vs. MLE quantile residuals 
 
-A common question is if there are differences between Bayesian and MLE quantile residuals. 
-
-First of all, note that MLE and Bayesian quantile residuals are not identical. The main difference is in how the simulation of the data under the fitted model are performed:
-
-* For models fitted by MLE, simulations in DHARMa are done with H0 = the true model is the fitted model with the MLE (point estimate)
-
-* For models fitted with Bayes, simulations are practically always performed by additionally drawing from the posterior parameter uncertainty (as a point estimate is not available).
-
-From this we can directly conclude that Bayesian and MLE quantile residuals are asymptotically identical (and via the usual arguments uniformly distributed).
-
-The more interesting question is what happens in the low data situation. Let's imagine that we start with a situation of infinite data. In this case, we have a "sharp" posterior that can be viewed as identical to the MLE. 
-
-If we reduce the number of data, there are two things happening 
-
-1. The posterior gets wider, with the likelihood componet being normally distributed, at least initially
-
-2. The influence of the prior increases, the faster the stronger the prior is. 
-
-Thus, if we reduce the data, for weak / uninformative priors, we will simulate data while sampling parameters from a normal distribution around the MLE, while for strong priors, we will effectively sample data while drawing parameters of the model from the prior. 
-
-In particular in the latter case (prior dominates, which can be checked via prior sensitivity analysis), you may see residual patterns that are caused by the prior, even though the model structure is correct. In some sense, you could say that the residuals check if the combination of prior + structure is compatible with the data. It's a philosophical debate how to react on such a deviation, as the prior is not really negotiable in a Bayesian analysis.
-
-Of course, also the MLE distribution might get problems in low data situations, but I would argue that MLE is usually only used anyway if the MLE is reasonably sharp. In practice, I have seldom experienced problems with MLE estimates. It's a bit different in the Bayesian case, where it is possible and often done to fit very complex models with limited data. In this case, many of the general issues in defining null distributions for Bayesian p-values (as, e.g., reviewed in 
-[Conn et al., 2018](https://doi.org/10.1002/ecm.1314)) apply. 
+**Conclusions:** if you see overdispersion or a pattern after grouping, it highlights a model error that is structured by group. As the pattern usually highlights a model misfit, rather than a dispersion problem akin to what happens in an overdispersed binomial (which has major impacts on p-values and CIs), I view this binomial grouping pattern as less critical. Likely, most conclusions will not change if you ignore the problem. Nevertheless, you should try to understand the reason for it. When the group is spatial, it could be the sign of residual spatial autocorrelation which could be addressed by a spatial RE or a spatial model. When grouped by a continuous variable, it could be the sign of a nonlinear effect. 
 
 # Supported packages and frameworks
 
@@ -785,11 +769,17 @@ lm and glm and MASS::glm.nb are fully supported.
 
 lme4 model classes are fully supported. 
 
+Possible to condition on REs via re.form, see help of predict.merMod
+
 ## mgcv
 
 When using mgcv with DHARMa, it is highly recommended to also install mgcViz. Since version 0.4.5, this will allow DHARMa to fall back on the simulate.gam function in mgcViz, which is more general than the default simulate function. For example, without mgcViz, it will not be possible to simulate from mgcv::gam objects fitted with extended families. 
 
 If you absolutely want to use DHARMa without mgcViz, you should make sure that simulate(model) works correctly for the model object for which you want to calculate DHARMa residuals. 
+
+## gamm4
+
+Models fitted with gamm4 return a list that contains a lme4 object under the name "mer". You can test this object like an lme4 model, so e.g. simulateResiduals(myGamm4Model$mer). All remarks regarding lme4 objects apply. 
 
 ## glmmTMB
 
@@ -810,7 +800,6 @@ DHARMa residuals work with phyr, but the correct implementation is not fully tes
 ## brms
 
 brms can be made to work together with DHARMa, see [https://github.com/florianhartig/DHARMa/issues/33](https://github.com/florianhartig/DHARMa/issues/33)
-
 
 
 ## Unsupported packages

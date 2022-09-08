@@ -292,7 +292,7 @@ set.seed(123)
 
 # created data and fit with a missing predictor (Environment2)
 
-testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = c(1,3), family = binomial(), randomEffectVariance = 3, numGroups = 50)
+testData = createData(sampleSize = 500, overdispersion = 0, fixedEffects = c(0,3), family = binomial(), randomEffectVariance = 3, numGroups = 50)
 fittedModel <- glm(observedResponse ~ Environment1, family = "binomial", data = testData)
 
 res <- simulateResiduals(fittedModel = fittedModel)
