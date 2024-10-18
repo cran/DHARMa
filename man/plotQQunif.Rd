@@ -4,25 +4,26 @@
 \alias{plotQQunif}
 \title{Quantile-quantile plot for a uniform distribution}
 \usage{
-plotQQunif(simulationOutput, testUniformity = T, testOutliers = T,
-  testDispersion = T, ...)
+plotQQunif(simulationOutput, testUniformity = TRUE, testOutliers = TRUE,
+  testDispersion = TRUE, ...)
 }
 \arguments{
-\item{simulationOutput}{a DHARMa simulation output (class DHARMa)}
+\item{simulationOutput}{A DHARMa simulation output (class DHARMa).}
 
-\item{testUniformity}{if T, the function \code{\link{testUniformity}} will be called and the result will be added to the plot}
+\item{testUniformity}{If T, the function \link{testUniformity} will be called and the result will be added to the plot.}
 
-\item{testOutliers}{if T, the function \code{\link{testOutliers}} will be called and the result will be added to the plot}
+\item{testOutliers}{If T, the function \link{testOutliers} will be called and the result will be added to the plot.}
 
-\item{testDispersion}{if T, the function \code{\link{testDispersion}} will be called and the result will be added to the plot}
+\item{testDispersion}{If T, the function \link{testDispersion} will be called and the result will be added to the plot.}
 
-\item{...}{arguments to be passed on to \code{\link[gap]{qqunif}}}
+\item{...}{Arguments to be passed on to \link[gap:qqunif]{gap::qqunif}.}
 }
 \description{
-The function produces a uniform quantile-quantile plot from a DHARMa output
+The function produces a uniform quantile-quantile plot from a DHARMa output. Optionally, tests for uniformity, outliers and dispersion can be added.
 }
 \details{
-the function calls qqunif from the R package gap to create a quantile-quantile plot for a uniform distribution, and overlays tests for particular distributional problems as specified.
+The function calls qqunif() from the R package gap to create a quantile-quantile plot for a uniform distribution, and overlays tests for particular distributional problems as specified.
+When tests are displayed, significant p-values are highlighted in the color red by default. This can be changed by setting \code{options(DHARMaSignalColor = "red")} to a different color. See \code{getOption("DHARMaSignalColor")} for the current setting.
 }
 \examples{
 testData = createData(sampleSize = 200, family = poisson(), 
@@ -59,8 +60,12 @@ plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE, smoothScatter = T
 plotResiduals(simulationOutput, form = testData$Environment1, 
               quantreg = FALSE)
 
-# if pred is a factor, or if asFactor = T, will produce a boxplot
+# if pred is a factor, or if asFactor = TRUE, will produce a boxplot
 plotResiduals(simulationOutput, form = testData$group)
+
+# to diagnose overdispersion and heteroskedasticity it can be useful to 
+# display residuals as absolute deviation from the expected mean 0.5
+plotResiduals(simulationOutput, absoluteDeviation = TRUE, quantreg = FALSE)
 
 # All these options can also be provided to the main plotting function
 
@@ -72,5 +77,5 @@ plot(simulationOutput, quantreg = FALSE)
 
 }
 \seealso{
-\code{\link{plotSimulatedResiduals}}, \code{\link{plotResiduals}}
+\link{plotSimulatedResiduals}, \link{plotResiduals}
 }

@@ -1,4 +1,4 @@
-print.DHARMa.startupInfo <- function()
+printDHARMaStartupInfo <- function()
 { 
   version <- packageVersion('DHARMa')
   hello <- paste("This is DHARMa ",version,". For overview type '?DHARMa'. For recent changes, type news(package = 'DHARMa')" ,sep="")
@@ -6,10 +6,10 @@ print.DHARMa.startupInfo <- function()
 }
 
 .onLoad <- function(...) {
-  
+  options(DHARMaSignalColor = "red")
 }
 
 .onAttach <- function(...) { 
-  print.DHARMa.startupInfo()
+  printDHARMaStartupInfo()
 }
 

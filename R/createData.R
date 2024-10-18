@@ -1,32 +1,39 @@
 #' Simulate test data
 #' @description This function creates synthetic dataset with various problems such as overdispersion, zero-inflation, etc.
-#' @param sampleSize sample size of the dataset
-#' @param intercept intercept (linear scale)
-#' @param fixedEffects vector of fixed effects (linear scale)
-#' @param quadraticFixedEffects vector of quadratic fixed effects (linear scale)
-#' @param numGroups number of groups for the random effect
-#' @param randomEffectVariance variance of the random effect (intercept)
+#' @param sampleSize sample size of the dataset.
+#' @param intercept intercept (linear scale).
+#' @param fixedEffects vector of fixed effects (linear scale).
+#' @param quadraticFixedEffects vector of quadratic fixed effects (linear scale).
+#' @param numGroups number of groups for the random effect.
+#' @param randomEffectVariance variance of the random effect (intercept).
 #' @param overdispersion if this is a numeric value, it will be used as the sd of a random normal variate that is added to the linear predictor. Alternatively, a random function can be provided that takes as input the linear predictor.
-#' @param family family
+#' @param family family.
 #' @param scale scale if the distribution has a scale (e.g. sd for the Gaussian)
-#' @param cor correlation between predictors
-#' @param roundPoissonVariance if set, this creates a uniform noise on the possion response. The aim of this is to create heteroscedasticity
-#' @param pZeroInflation probability to set any data point to zero
-#' @param binomialTrials Number of trials for the binomial. Only active if family == binomial
-#' @param temporalAutocorrelation strength of temporalAutocorrelation
-#' @param spatialAutocorrelation strength of spatial Autocorrelation
-#' @param factorResponse should the response be transformed to a factor (inteded to be used for 0/1 data)
-#' @param replicates number of datasets to create
-#' @param hasNA should an NA be added to the environmental predictor (for test purposes)
+#' @param cor correlation between predictors.
+#' @param roundPoissonVariance if set, this creates a uniform noise on the possion response. The aim of this is to create heteroscedasticity.
+#' @param pZeroInflation probability to set any data point to zero.
+#' @param binomialTrials Number of trials for the binomial. Only active if family == binomial.
+#' @param temporalAutocorrelation strength of temporalAutocorrelation.
+#' @param spatialAutocorrelation strength of spatial Autocorrelation.
+#' @param factorResponse should the response be transformed to a factor (inteded to be used for 0/1 data).
+#' @param replicates number of datasets to create.
+#' @param hasNA should an NA be added to the environmental predictor (for test purposes).
 #' @export
 #' @example /inst/examples/createDataHelp.R
-createData <- function(sampleSize = 100, intercept = 0, fixedEffects = 1, quadraticFixedEffects = NULL, numGroups = 10, randomEffectVariance = 1, overdispersion = 0, family = poisson(), scale = 1, cor = 0, roundPoissonVariance = NULL,  pZeroInflation = 0, binomialTrials = 1, temporalAutocorrelation = 0, spatialAutocorrelation =0, factorResponse = F, replicates=1, hasNA = F){
+createData <- function(sampleSize = 100, intercept = 0, fixedEffects = 1,
+                       quadraticFixedEffects = NULL, numGroups = 10,
+                       randomEffectVariance = 1, overdispersion = 0,
+                       family = poisson(), scale = 1, cor = 0,
+                       roundPoissonVariance = NULL,  pZeroInflation = 0,
+                       binomialTrials = 1, temporalAutocorrelation = 0,
+                       spatialAutocorrelation = 0, factorResponse = FALSE,
+                       replicates = 1, hasNA = FALSE){
 
   nPredictors = length(fixedEffects)
 
   out = list()
 
-  time = 1:sampleSize
+  time = sample.int(sampleSize) #change to random order because of issue #436
   x = runif(sampleSize)
   y = runif(sampleSize)
 
@@ -77,7 +84,7 @@ createData <- function(sampleSize = 100, intercept = 0, fixedEffects = 1, quadra
       diag(invDistMat) <- 0
       invDistMat = sfsmisc::posdefify(invDistMat)
 
-      temporalError <- MASS::mvrnorm(n=1, mu=rep(0,sampleSize), Sigma=invDistMat)
+      temporalError <- MASS::mvrnorm(n = 1, mu = rep(0,sampleSize), Sigma = invDistMat)
 
       linearResponse = linearResponse + temporalAutocorrelation * temporalError
     }
@@ -90,7 +97,7 @@ createData <- function(sampleSize = 100, intercept = 0, fixedEffects = 1, quadra
       diag(invDistMat) <- 0
       invDistMat = sfsmisc::posdefify(invDistMat)
 
-      spatialError <- MASS::mvrnorm(n=1, mu=rep(0,sampleSize), Sigma=invDistMat)
+      spatialError <- MASS::mvrnorm(n = 1, mu = rep(0,sampleSize), Sigma = invDistMat)
 
       linearResponse = linearResponse + spatialAutocorrelation * spatialError
     }

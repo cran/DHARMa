@@ -2,14 +2,14 @@
 % Please edit documentation in R/tests.R
 \name{testGeneric}
 \alias{testGeneric}
-\title{Generic simulation test of a summary statistic}
+\title{Test for a generic summary statistic based on simulated data}
 \usage{
 testGeneric(simulationOutput, summary, alternative = c("two.sided",
   "greater", "less"), plot = T,
   methodName = "DHARMa generic simulation test")
 }
 \arguments{
-\item{simulationOutput}{an object of class DHARMa, either created via \code{\link{simulateResiduals}} for supported models or by \code{\link{createDHARMa}} for simulations created outside DHARMa, or a supported model. Providing a supported model directly is discouraged, because simulation settings cannot be changed in this case.}
+\item{simulationOutput}{an object of class DHARMa, either created via \link{simulateResiduals} for supported models or by \link{createDHARMa} for simulations created outside DHARMa, or a supported model. Providing a supported model directly is discouraged, because simulation settings cannot be changed in this case.}
 
 \item{summary}{a function that can be applied to simulated / observed data. See examples below}
 
@@ -23,22 +23,26 @@ testGeneric(simulationOutput, summary, alternative = c("two.sided",
 This function tests if a user-defined summary differs when applied to simulated / observed data.
 }
 \details{
-This function tests if a user-defined summary differs when applied to simulated / observed data. the function can easily be remodeled to apply summaries on the residuals, by simply defining f = function(x) summary (x - predictions), as done in \code{\link{testDispersion}}
+This function applies a user-defined summary to the simulated/observed data of a DHARMa object and then performs a hypothesis test using the ratio Obs / Sim as the test statistic.
+
+The summary is applied directly to the data and not to the residuals, but it can easily be remodeled to apply summaries to the residuals by simply defining something like f = function(x) summary (x - predictions), as done in \link{testDispersion}
 }
 \note{
-The function that you supply is applied on the data as it is represented in your fitted model, which may not always correspond to how you think. This is important in particular when you use k/n binomial data, and want to test for 1-inflation. As an example, if have k/20 observations, and you provide your data via cbind (y, y-20), you have to test for 20-inflation (because this is how the data is represented in the model). However, if you provide data via y/20, and weights = 20, you should test for 1-inflation. In doubt, check how the data is internally represented in model.frame(model), or via simulate(model)
+The summary function you specify will be applied to the data as it appears in your fitted model, which may not always be what you want.
+
+As an example, consider the case where we want to test for n-inflation in k/n data. If you provide your data via cbind (k, n-k), you have to test for n-inflation, but if you provide your data via k/n and weights = n, you should test for 1-inflation. When in doubt, check how the data is represented internally in model.frame(model) or via simulate(model).
 }
 \examples{
 testData = createData(sampleSize = 100, overdispersion = 0.5, randomEffectVariance = 0)
 fittedModel <- glm(observedResponse ~ Environment1 , family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
-# the plot function runs 4 tests
+# the plot function shows 2 plots and runs 4 tests
 # i) KS test i) Dispersion test iii) Outlier test iv) quantile test
 plot(simulationOutput, quantreg = TRUE)
 
 # testResiduals tests distribution, dispersion and outliers
-# testResiduals(simulationOutput)
+testResiduals(simulationOutput)
 
 ####### Individual tests #######
 
@@ -70,7 +74,7 @@ spread <- function(x) sd(x) # testing if mean sd fits
 testGeneric(simulationOutput, summary = spread)
 }
 \seealso{
-\code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testQuantiles}}, \code{\link{testCategorical}}
+\link{testResiduals}, \link{testUniformity}, \link{testOutliers}, \link{testDispersion}, \link{testZeroInflation}, \link{testGeneric}, \link{testTemporalAutocorrelation}, \link{testSpatialAutocorrelation}, \link{testQuantiles}, \link{testCategorical}
 }
 \author{
 Florian Hartig

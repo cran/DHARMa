@@ -4,30 +4,30 @@
 \alias{testResiduals}
 \title{DHARMa general residual test}
 \usage{
-testResiduals(simulationOutput, plot = T)
+testResiduals(simulationOutput, plot = TRUE)
 }
 \arguments{
-\item{simulationOutput}{an object of class DHARMa, either created via \code{\link{simulateResiduals}} for supported models or by \code{\link{createDHARMa}} for simulations created outside DHARMa, or a supported model. Providing a supported model directly is discouraged, because simulation settings cannot be changed in this case.}
+\item{simulationOutput}{an object of class DHARMa, either created via \link{simulateResiduals} for supported models or by \link{createDHARMa} for simulations created outside DHARMa, or a supported model. Providing a supported model directly is discouraged, because simulation settings cannot be changed in this case.}
 
-\item{plot}{if T, plots functions of the tests are called}
+\item{plot}{if TRUE, plots functions of the tests are called.}
 }
 \description{
-Calls both uniformity and dispersion test
+Calls uniformity, dispersion and outliers tests.
 }
 \details{
-This function is a wrapper for the various test functions implemented in DHARMa. Currently, this function calls the \code{\link{testUniformity}} and the \code{\link{testDispersion}} functions. All other tests (see list below) have to be called by hand.
+This function is a wrapper for the various test functions implemented in DHARMa. Currently, this function calls the functions \link{testUniformity}, \link{testDispersion}, and \link{testOutliers}. All other tests (see list below) have to be called by hand.
 }
 \examples{
 testData = createData(sampleSize = 100, overdispersion = 0.5, randomEffectVariance = 0)
 fittedModel <- glm(observedResponse ~ Environment1 , family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
-# the plot function runs 4 tests
+# the plot function shows 2 plots and runs 4 tests
 # i) KS test i) Dispersion test iii) Outlier test iv) quantile test
 plot(simulationOutput, quantreg = TRUE)
 
 # testResiduals tests distribution, dispersion and outliers
-# testResiduals(simulationOutput)
+testResiduals(simulationOutput)
 
 ####### Individual tests #######
 
@@ -59,7 +59,7 @@ spread <- function(x) sd(x) # testing if mean sd fits
 testGeneric(simulationOutput, summary = spread)
 }
 \seealso{
-\code{\link{testResiduals}}, \code{\link{testUniformity}}, \code{\link{testOutliers}}, \code{\link{testDispersion}}, \code{\link{testZeroInflation}}, \code{\link{testGeneric}}, \code{\link{testTemporalAutocorrelation}}, \code{\link{testSpatialAutocorrelation}}, \code{\link{testQuantiles}}, \code{\link{testCategorical}}
+\link{testResiduals}, \link{testUniformity}, \link{testOutliers}, \link{testDispersion}, \link{testZeroInflation}, \link{testGeneric}, \link{testTemporalAutocorrelation}, \link{testSpatialAutocorrelation}, \link{testQuantiles}, \link{testCategorical}
 }
 \author{
 Florian Hartig

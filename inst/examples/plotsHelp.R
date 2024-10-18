@@ -32,8 +32,12 @@ plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE, smoothScatter = T
 plotResiduals(simulationOutput, form = testData$Environment1, 
               quantreg = FALSE)
 
-# if pred is a factor, or if asFactor = T, will produce a boxplot
+# if pred is a factor, or if asFactor = TRUE, will produce a boxplot
 plotResiduals(simulationOutput, form = testData$group)
+
+# to diagnose overdispersion and heteroskedasticity it can be useful to 
+# display residuals as absolute deviation from the expected mean 0.5
+plotResiduals(simulationOutput, absoluteDeviation = TRUE, quantreg = FALSE)
 
 # All these options can also be provided to the main plotting function
 

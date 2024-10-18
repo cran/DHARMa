@@ -4,6 +4,8 @@
 \alias{getObservedResponse}
 \alias{getObservedResponse.default}
 \alias{getObservedResponse.HLfit}
+\alias{getObservedResponse.phylolm}
+\alias{getObservedResponse.phyloglm}
 \title{Get model response}
 \usage{
 getObservedResponse(object, ...)
@@ -11,17 +13,21 @@ getObservedResponse(object, ...)
 \method{getObservedResponse}{default}(object, ...)
 
 \method{getObservedResponse}{HLfit}(object, ...)
+
+\method{getObservedResponse}{phylolm}(object, ...)
+
+\method{getObservedResponse}{phyloglm}(object, ...)
 }
 \arguments{
-\item{object}{a fitted model}
+\item{object}{a fitted model.}
 
-\item{...}{additional parameters}
+\item{...}{additional parameters.}
 }
 \description{
-Extract the response of a fitted model
+Extract the response of a fitted model.
 }
 \details{
-The purpose of this function is to safely extract the observed response (dependent variable) of the fitted model classes
+The purpose of this function is to safely extract the observed response (dependent variable) of the fitted model classes.
 }
 \examples{
 testData = createData(sampleSize = 400, family = gaussian())
@@ -45,7 +51,7 @@ getRefit(fittedModel, x[[1]])
 getRefit(fittedModel, getObservedResponse(fittedModel))
 }
 \seealso{
-\code{\link{getRefit}}, \code{\link{getSimulations}}, \code{\link{getFixedEffects}}, \code{\link{getFitted}}
+\link{getRefit}, \link{getSimulations}, \link{getFixedEffects}, \link{getFitted}
 }
 \author{
 Florian Hartig

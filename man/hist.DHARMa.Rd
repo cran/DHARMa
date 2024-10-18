@@ -5,27 +5,30 @@
 \title{Histogram of DHARMa residuals}
 \usage{
 \method{hist}{DHARMa}(x, breaks = seq(-0.02, 1.02, len = 53),
-  col = c("red", rep("lightgrey", 50), "red"),
-  main = "Hist of DHARMa residuals",
+  col = c(.Options$DHARMaSignalColor, rep("lightgrey", 50),
+  .Options$DHARMaSignalColor), main = "Hist of DHARMa residuals",
   xlab = "Residuals (outliers are marked red)", cex.main = 1, ...)
 }
 \arguments{
-\item{x}{a DHARMa simulation output (class DHARMa)}
+\item{x}{A DHARMa simulation output (class DHARMa)}
 
-\item{breaks}{breaks for hist() function}
+\item{breaks}{Breaks for hist() function.}
 
-\item{col}{col for hist bars}
+\item{col}{Color for histogram bars.}
 
-\item{main}{plot main}
+\item{main}{Plot title.}
 
-\item{xlab}{plot xlab}
+\item{xlab}{Plot x-axis label.}
 
-\item{cex.main}{plot cex.main}
+\item{cex.main}{Plot cex.main.}
 
-\item{...}{other arguments to be passed on to hist}
+\item{...}{Other arguments to be passed on to hist().}
 }
 \description{
-The function produces a histogram from a DHARMa output
+The function produces a histogram from a DHARMa output. Outliers are marked red.
+}
+\details{
+The function calls hist() to create a histogram of the scaled residuals. Outliers are marked red as default but it can be changed by setting \code{options(DHARMaSignalColor = "red")} to a different color. See \code{getOption("DHARMaSignalColor")} for the current setting.
 }
 \examples{
 testData = createData(sampleSize = 200, family = poisson(), 
@@ -62,8 +65,12 @@ plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE, smoothScatter = T
 plotResiduals(simulationOutput, form = testData$Environment1, 
               quantreg = FALSE)
 
-# if pred is a factor, or if asFactor = T, will produce a boxplot
+# if pred is a factor, or if asFactor = TRUE, will produce a boxplot
 plotResiduals(simulationOutput, form = testData$group)
+
+# to diagnose overdispersion and heteroskedasticity it can be useful to 
+# display residuals as absolute deviation from the expected mean 0.5
+plotResiduals(simulationOutput, absoluteDeviation = TRUE, quantreg = FALSE)
 
 # All these options can also be provided to the main plotting function
 
@@ -75,5 +82,5 @@ plot(simulationOutput, quantreg = FALSE)
 
 }
 \seealso{
-\code{\link{plotSimulatedResiduals}}, \code{\link{plotResiduals}}
+\link{plotSimulatedResiduals}, \link{plotResiduals}
 }

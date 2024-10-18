@@ -7,6 +7,8 @@
 \alias{getRefit.glmmTMB}
 \alias{getRefit.HLfit}
 \alias{getRefit.MixMod}
+\alias{getRefit.phylolm}
+\alias{getRefit.phyloglm}
 \title{Get model refit}
 \usage{
 getRefit(object, newresp, ...)
@@ -20,23 +22,23 @@ getRefit(object, newresp, ...)
 \method{getRefit}{HLfit}(object, newresp, ...)
 
 \method{getRefit}{MixMod}(object, newresp, ...)
+
+\method{getRefit}{phylolm}(object, newresp, ...)
+
+\method{getRefit}{phyloglm}(object, newresp, ...)
 }
 \arguments{
-\item{object}{a fitted model}
+\item{object}{a fitted model.}
 
-\item{newresp}{the new response that should be used to refit the model}
+\item{newresp}{the new response that should be used to refit the model.}
 
-\item{...}{additional parameters to be passed on to the refit or update class that is used to refit the model}
+\item{...}{additional parameters to be passed on to the refit or update class that is used to refit the model.}
 }
 \description{
-Wrapper to refit a fitted model
-
-checks if the fitted model excluded NA values
+Wrapper to refit a fitted model.
 }
 \details{
 The purpose of this wrapper is to standardize the refit of a model. The behavior of this function depends on the supplied model. When available, it uses the refit method, otherwise it will use update. For glmmTMB: since version 1.0, glmmTMB has a refit function, but this didn't work, so I switched back to this implementation, which is a hack based on the update function.
-
-Checks if the fitted model excluded NA values
 }
 \examples{
 testData = createData(sampleSize = 400, family = gaussian())
@@ -60,7 +62,7 @@ getRefit(fittedModel, x[[1]])
 getRefit(fittedModel, getObservedResponse(fittedModel))
 }
 \seealso{
-\code{\link{getObservedResponse}}, \code{\link{getSimulations}}, \code{\link{getFixedEffects}}
+\link{getObservedResponse}, \link{getSimulations}, \link{getFixedEffects}
 }
 \author{
 Florian Hartig
