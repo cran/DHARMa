@@ -4,6 +4,7 @@
 \alias{getResiduals}
 \alias{getResiduals.default}
 \alias{getResiduals.MixMod}
+\alias{getResiduals.brmsfit}
 \title{Get model residuals}
 \usage{
 getResiduals(object, ...)
@@ -11,6 +12,8 @@ getResiduals(object, ...)
 \method{getResiduals}{default}(object, ...)
 
 \method{getResiduals}{MixMod}(object, ...)
+
+\method{getResiduals}{brmsfit}(object, ...)
 }
 \arguments{
 \item{object}{a fitted model.}
@@ -43,6 +46,9 @@ x = getSimulations(fittedModel, nsim = 2, type = "refit")
 getRefit(fittedModel, x[[1]])
 
 getRefit(fittedModel, getObservedResponse(fittedModel))
+
+# get data frame that was used to fit the model
+getData(fittedModel)
 }
 \seealso{
 \link{getObservedResponse}, \link{getSimulations}, \link{getRefit}, \link{getFixedEffects}, \link{getFitted}

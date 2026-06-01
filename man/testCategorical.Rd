@@ -5,24 +5,26 @@
 \title{Test for categorical dependencies}
 \usage{
 testCategorical(simulationOutput, catPred, quantiles = c(0.25, 0.5, 0.75),
-  plot = TRUE)
+  plot = TRUE, ...)
 }
 \arguments{
 \item{simulationOutput}{an object of class DHARMa, either created via \link{simulateResiduals} for supported models or by \link{createDHARMa} for simulations created outside DHARMa, or a supported model. Providing a supported model directly is discouraged, because simulation settings cannot be changed in this case.}
 
-\item{catPred}{a categorical predictor with the same dimensions as the residuals in simulationOutput}
+\item{catPred}{a categorical predictor with the same dimensions as the residuals in simulationOutput. If specified as formula, e.g. catPred = ~group, NAs are handled automatically (recommended).}
 
 \item{quantiles}{whether to draw the quantile lines.}
 
-\item{plot}{if TRUE, the function will create an additional plot}
+\item{plot}{if TRUE, the function will create an additional plot.}
+
+\item{...}{additional arguments to boxplot.}
 }
 \description{
-This function tests if there are probles in a res ~ group structure. It performs two tests: test for within-group uniformity, and test for between-group homogeneity of variances
+This function tests if there are problems in a res ~ group structure. It performs two tests: test for within-group uniformity, and test for between-group homogeneity of variances.
 }
 \details{
-The function tests for two common problems: are residuals within each group distributed according to model assumptions, and is the variance between group heterogeneous.
+The function tests for two common problems: are residuals within each group distributed according to model assumptions, and is the variance between groups heterogeneous.
 
-The test for within-group uniformity is performed via multipe KS-tests, with adjustment of p-values for multiple testing. If the plot is drawn, problematic groups are highlighted in red, and a corresponding message is displayed in the plot.
+The test for within-group uniformity is performed via multiple KS-tests, with adjustment of p-values for multiple testing. If the plot is drawn, problematic groups are highlighted in red, and a corresponding message is displayed in the plot.
 
 The test for homogeneity of variances is done with a Levene test. A significant p-value means that group variances are not constant. In this case, you should consider modelling variances, e.g. via ~dispformula in glmmTMB.
 }
@@ -44,6 +46,10 @@ testResiduals(simulationOutput)
 testUniformity(simulationOutput)
 
 # KS test for correct distribution within and between groups
+# group specified as formula (recommended)
+testCategorical(simulationOutput, ~group)
+
+# group specified as variable in your environment
 testCategorical(simulationOutput, testData$group)
 
 # Dispersion test - for details see ?testDispersion

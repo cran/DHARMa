@@ -8,15 +8,15 @@ plotQQunif(simulationOutput, testUniformity = TRUE, testOutliers = TRUE,
   testDispersion = TRUE, ...)
 }
 \arguments{
-\item{simulationOutput}{A DHARMa simulation output (class DHARMa).}
+\item{simulationOutput}{a DHARMa simulation output (class DHARMa).}
 
-\item{testUniformity}{If T, the function \link{testUniformity} will be called and the result will be added to the plot.}
+\item{testUniformity}{if T, the function \link{testUniformity} will be called and the result will be added to the plot.}
 
-\item{testOutliers}{If T, the function \link{testOutliers} will be called and the result will be added to the plot.}
+\item{testOutliers}{if T, the function \link{testOutliers} will be called and the result will be added to the plot.}
 
-\item{testDispersion}{If T, the function \link{testDispersion} will be called and the result will be added to the plot.}
+\item{testDispersion}{if T, the function \link{testDispersion} will be called and the result will be added to the plot.}
 
-\item{...}{Arguments to be passed on to \link[gap:qqunif]{gap::qqunif}.}
+\item{...}{arguments to be passed on to \link[gap:qqunif]{gap::qqunif}.}
 }
 \description{
 The function produces a uniform quantile-quantile plot from a DHARMa output. Optionally, tests for uniformity, outliers and dispersion can be added.
@@ -26,56 +26,35 @@ The function calls qqunif() from the R package gap to create a quantile-quantile
 When tests are displayed, significant p-values are highlighted in the color red by default. This can be changed by setting \code{options(DHARMaSignalColor = "red")} to a different color. See \code{getOption("DHARMaSignalColor")} for the current setting.
 }
 \examples{
-testData = createData(sampleSize = 200, family = poisson(), 
+testData = createData(sampleSize = 200, family = poisson(),
+                      fixedEffects = c(1,1),
                       randomEffectVariance = 1, numGroups = 10)
-fittedModel <- glm(observedResponse ~ Environment1, 
+testData$Environment2[1] = NA
+fittedModel <- glm(observedResponse ~ Environment1 + Environment2,
                    family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
 ######### main plotting function #############
 
-# for all functions, quantreg = T will be more
-# informative, but slower
+plot(simulationOutput)
+# for all functions, quantreg = T (default) will be more informative
+# but slower. Alternative:
 
 plot(simulationOutput, quantreg = FALSE)
 
 #############  Distribution  ######################
 
-plotQQunif(simulationOutput = simulationOutput, 
+plotQQunif(simulationOutput = simulationOutput,
            testDispersion = FALSE,
            testUniformity = FALSE,
            testOutliers = FALSE)
 
-hist(simulationOutput )
+hist(simulationOutput)
 
-#############  residual plots  ###############
 
-# rank transformation, using a simulationOutput
-plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE)
-
-# smooth scatter plot - usually used for large datasets, default for n > 10000
-plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE, smoothScatter = TRUE)
-
-# residual vs predictors, using explicit values for pred, residual 
-plotResiduals(simulationOutput, form = testData$Environment1, 
-              quantreg = FALSE)
-
-# if pred is a factor, or if asFactor = TRUE, will produce a boxplot
-plotResiduals(simulationOutput, form = testData$group)
-
-# to diagnose overdispersion and heteroskedasticity it can be useful to 
-# display residuals as absolute deviation from the expected mean 0.5
-plotResiduals(simulationOutput, absoluteDeviation = TRUE, quantreg = FALSE)
-
-# All these options can also be provided to the main plotting function
-
-# If you want to plot summaries per group, use
-simulationOutput = recalculateResiduals(simulationOutput, group = testData$group)
-plot(simulationOutput, quantreg = FALSE) 
-# we see one residual point per RE
 
 
 }
 \seealso{
-\link{plotSimulatedResiduals}, \link{plotResiduals}
+\link{plot.DHARMa}, \link{plotResiduals}
 }

@@ -12,7 +12,7 @@
 
 <meta name="author" content="Florian Hartig, Theoretical Ecology, University of Regensburg website" />
 
-<meta name="date" content="2024-10-17" />
+<meta name="date" content="2026-05-26" />
 
 <title>DHARMa for Bayesians</title>
 
@@ -350,14 +350,14 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 
 <h1 class="title toc-ignore">DHARMa for Bayesians</h1>
 <h4 class="author">Florian Hartig, Theoretical Ecology, University of
-Regensburg <a href="https://www.uni-regensburg.de/biologie-vorklinische-medizin/theoretische-oekologie/mitarbeiter/hartig/">website</a></h4>
-<h4 class="date">2024-10-17</h4>
+Regensburg <a href="https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig/team/prof-dr-florian-hartig">website</a></h4>
+<h4 class="date">2026-05-26</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
 <p>The ‘DHARMa’ package uses a simulation-based approach to create
 readily interpretable scaled (quantile) residuals for fitted
-(generalized) linear mixed models. This Vignette describes how to user
-DHARMa vor checking Bayesian models. It is recommended to read this
+(generalized) linear mixed models. This vignette describes how to use
+DHARMa for checking Bayesian models. It is recommended to read this
 AFTER the general DHARMa vignette, as all comments made there (in
 pacticular regarding the interpretation of the residuals) also apply to
 Bayesian models.</p>
@@ -391,14 +391,17 @@ I believe that for most people, these are of less concern.</p>
 <p>The main difference for a Bayesian user is that, unlike for users of
 directly supported regression packages such as lme4 or glmmTMB, most
 Bayesian users will have to create the simulations for the fitted model
-themselves and then feed them into DHARMa by hand. The basic workflow
-for Bayesians that work with BUGS, JAGS, STAN or similar is:</p>
+themselves and then feed them into DHARMa by hand. The exception are
+simple models (no multi-response, multinomial or structural equation
+models) from the brms package, which is supported since DHARMa version
+0.5.0. The basic workflow for Bayesians that work with BUGS, JAGS, STAN
+or similar is:</p>
 <ol style="list-style-type: decimal">
 <li>Create posterior predictive simulations for your model</li>
 <li>Read these in with the createDHARMa function</li>
 <li>Interpret those as described in the main vignette</li>
 </ol>
-<p>This is more easy as it sounds. For the major Bayesian samplers
+<p>This is more easy than it sounds. For the major Bayesian samplers
 (e.g. BUGS, JAGS, STAN), it amounts to adding a block with data
 simulations to the model, and observing those during the MCMC sampling.
 Then, feed the simulations into DHARMa via createDHARMa, and all else
@@ -457,7 +460,7 @@ which is not accounted for by the Jags model.</p>
 <ul>
 <li>Add a RE</li>
 <li>Account for overdispersion, e.g. via an OLRE or a negative
-Binomial</li>
+binomial</li>
 </ul>
 <p>And check how the residuals improve.</p>
 </div>
@@ -466,15 +469,15 @@ Binomial</li>
 <h1>Conditional vs. unconditional simulations in hierarchical
 models</h1>
 <p>The most important consideration in using DHARMa with Bayesian models
-is how to create the simulations. You can see in my jags code that the
+is how to create the simulations. You can see in my Jags code that the
 block</p>
 <div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a>  <span class="co"># Posterior predictive simulations </span></span>
 <span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a>  <span class="cf">for</span> (i <span class="cf">in</span> <span class="dv">1</span><span class="sc">:</span>nobs) {</span>
 <span id="cb2-3"><a href="#cb2-3" tabindex="-1"></a>    observedResponseSim[i]<span class="sc">~</span><span class="fu">dpois</span>(lambda[i])</span>
 <span id="cb2-4"><a href="#cb2-4" tabindex="-1"></a>  }</span></code></pre></div>
 <p>performs the posterior predictive simulations. Here, we just take the
-predicted lambda (mean perdictions) during the MCMC simulations and
-sample from the assumed distribution. This will works for any
+predicted lambda (mean predictions) during the MCMC simulations and
+sample from the assumed distribution. This will work for any
 non-hierarchical model.</p>
 <p>When we move to hierarchical or multi-level models, including GLMMs,
 the issue of simulation becomes a bit more complicated. In a
@@ -511,7 +514,7 @@ structure of the likelihood in the predictions</p>
 <span id="cb4-7"><a href="#cb4-7" tabindex="-1"></a>    lambdaSim[i] <span class="ot">&lt;-</span> <span class="fu">exp</span>(etaSim[i]) </span>
 <span id="cb4-8"><a href="#cb4-8" tabindex="-1"></a>    etaSim[i] <span class="ot">&lt;-</span> intercept <span class="sc">+</span> env<span class="sc">*</span>Environment1[i] <span class="sc">+</span> RESim[group[i]] </span>
 <span id="cb4-9"><a href="#cb4-9" tabindex="-1"></a>  }</span></code></pre></div>
-<p>Essentially, you can remember that if you want full (uncoditional)
+<p>Essentially, you can remember that if you want full (unconditional)
 simulations, you basically have to copy the entire likelihood of the
 hierarchical model, minus the priors, and sample along the hierarchical
 model structure. If you want to condition on a part of this structure,
@@ -524,7 +527,7 @@ residuals</h1>
 MLE quantile residuals.</p>
 <p>First of all, note that MLE and Bayesian quantile residuals are not
 exactly identical. The main difference is in how the simulation of the
-data under the fitted model are performed:</p>
+data under the fitted model is performed:</p>
 <ul>
 <li><p>For models fitted by MLE, simulations in DHARMa are with the MLE
 (point estimate)</p></li>

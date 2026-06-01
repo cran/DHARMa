@@ -6,10 +6,29 @@
 \alias{DHARMa-package}
 \title{DHARMa: Residual Diagnostics for Hierarchical (Multi-Level / Mixed) Regression Models}
 \description{
-The 'DHARMa' package uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted (generalized) linear mixed models. Currently supported are linear and generalized linear (mixed) models from 'lme4' (classes 'lmerMod', 'glmerMod'), 'glmmTMB', 'GLMMadaptive', and 'spaMM'; phylogenetic linear models from 'phylolm' (classes 'phylolm' and 'phyloglm'); generalized additive models ('gam' from 'mgcv'); 'glm' (including 'negbin' from 'MASS', but excluding quasi-distributions) and 'lm' model classes. Moreover, externally created simulations, e.g. posterior predictive simulations from Bayesian software such as 'JAGS', 'STAN', or 'BUGS' can be processed as well. The resulting residuals are standardized to values between 0 and 1 and can be interpreted as intuitively as residuals from a linear regression. The package also provides a number of plot and test functions for typical model misspecification problems, such as over/underdispersion, zero-inflation, and residual spatial, phylogenetic and temporal autocorrelation.
+"Uses a simulation-based approach to create readily interpretable scaled (quantile) residuals for fitted generalized linear (mixed) models. Currently supported are linear and generalized linear (mixed) models from 'lme4' (classes 'lmerMod', 'glmerMod'), 'glmmTMB', 'GLMMadaptive', 'spaMM', and 'brms' (simple models); phylogenetic linear models from 'phylolm' (classes 'phylolm' and 'phyloglm'); generalized additive models ('gam' from 'mgcv'); 'glm' (including 'negbin' from 'MASS', but excluding quasi-distributions) and 'lm' model classes. Moreover, externally created simulations, e.g. posterior predictive simulations from Bayesian software such as 'JAGS', 'STAN', or 'BUGS' can be processed as well. The resulting residuals are standardized to values between 0 and 1 and can be interpreted as intuitively as residuals from a linear regression. The package also provides a number of plot and test functions for typical model misspecification problems, such as over/underdispersion, zero-inflation, and residual spatial, temporal and phylogenetic autocorrelation."
 }
 \details{
 To get started with the package, look at the vignette and start with \link{simulateResiduals}
+}
+\section{Funding}{
+ Development and maintenance of the DHARMa package has been supported by the \strong{Deutsche Forschungsgemeinschaft (DFG)}, project number \href{https://gepris.dfg.de/gepris/projekt/528747641}{528747641} (2024-now).
+}
+
+\examples{
+# simulating a dataset
+testData = createData(sampleSize = 200, family = poisson(),
+                      fixedEffects = c(1,1),
+                      randomEffectVariance = 1, numGroups = 10)
+# fitting glm model
+fittedModel <- glm(observedResponse ~ Environment1 + Environment2,
+                   family = "poisson", data = testData)
+
+# simulating residuals
+simulationOutput <- simulateResiduals(fittedModel = fittedModel)
+
+#plotting residuals
+plot(simulationOutput, quantreg = FALSE)
 }
 \references{
 vignette("DHARMa", package="DHARMa")
@@ -28,8 +47,8 @@ Useful links:
 Other contributors:
 \itemize{
   \item Lukas Lohse [contributor]
-  \item Melina de Souza leite [contributor]
+  \item Melina de Souza Leite (\href{https://orcid.org/0000-0003-0505-0667}{ORCID}) [contributor]
+  \item Cosmina Werneke (\href{https://orcid.org/0009-0008-7629-2173}{ORCID}) [contributor]
 }
 
 }
-\keyword{internal}

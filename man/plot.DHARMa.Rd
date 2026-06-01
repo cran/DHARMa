@@ -7,23 +7,23 @@
 \method{plot}{DHARMa}(x, title = "DHARMa residual", ...)
 }
 \arguments{
-\item{x}{An object of class DHARMa with simulated residuals created by \link{simulateResiduals}.}
+\item{x}{an object of class DHARMa with simulated residuals created by \link{simulateResiduals}.}
 
-\item{title}{The title for both panels (plotted via mtext, outer = TRUE).}
+\item{title}{the title for both panels (plotted via mtext, outer = TRUE).}
 
-\item{...}{Further options for \link{plotResiduals}. Consider in particular parameters quantreg, rank and asFactor. xlab, ylab and main cannot be changed when using plot.DHARMa, but can be changed when using \link{plotResiduals}.}
+\item{...}{further options for \link{plotResiduals}. Consider in particular parameters quantreg, rank and asFactor. xlab, ylab and main cannot be changed when using plot.DHARMa, but can be changed when using \link{plotResiduals}.}
 }
 \description{
-This S3 function creates standard plots for the simulated residuals contained in an object of class DHARMa, using \link{plotQQunif} (left panel) and \link{plotResiduals} (right panel)
+This S3 function creates standard plots for the simulated residuals contained in an object of class DHARMa, using \link{plotQQunif} (left panel) and \link{plotResiduals} (right panel).
 }
 \details{
-The function creates a plot with two panels. The left panel is a uniform qq plot (calling \link{plotQQunif}), and the right panel shows residuals against predicted values (calling \link{plotResiduals}), with outliers highlighted in red (default color but see Note).
+The function creates a plot with two panels. The left panel is a uniform qq plot (calling \link{plotQQunif}), and the right panel shows residuals against predicted values (calling \link{plotResiduals}), with outliers as a star/asterisk and highlighted in red if outlier test is significant (default color but see Note).
 
 Very briefly, we would expect that a correctly specified model shows:
 
-a) a straight 1-1 line, as well as non-significance of the displayed tests in the qq-plot (left) -> evidence for an the correct overall residual distribution (for more details on the interpretation of this plot, see \link{plotQQunif})
+a) a straight 1-1 line, as well as non-significance of the displayed tests in the qq-plot (left) -> evidence for a correct overall residual distribution (for more details on the interpretation of this plot, see \link{plotQQunif})
 
-b) visual homogeneity of residuals in both vertical and horizontal direction, as well as n.s. of quantile tests in the res ~ predictor plot (for more details on the interpretation of this plot, see \link{plotResiduals})
+b) visual homogeneity of residuals in both vertical and horizontal direction, as well as non-significance of quantile tests in the res ~ predictor plot (for more details on the interpretation of this plot, see \link{plotResiduals})
 
 Deviations from these expectations can be interpreted similar to a linear regression. See the vignette for detailed examples.
 
@@ -33,53 +33,32 @@ Note that, unlike \link{plotResiduals}, plot.DHARMa command uses the default ran
 The color for highlighting outliers and significant tests can be changed by setting \code{options(DHARMaSignalColor = "red")} to a different color. See \code{getOption("DHARMaSignalColor")} for the current setting. This is convenient for a color-blind friendly display, since red and black are difficult for some people to separate.
 }
 \examples{
-testData = createData(sampleSize = 200, family = poisson(), 
+testData = createData(sampleSize = 200, family = poisson(),
+                      fixedEffects = c(1,1),
                       randomEffectVariance = 1, numGroups = 10)
-fittedModel <- glm(observedResponse ~ Environment1, 
+testData$Environment2[1] = NA
+fittedModel <- glm(observedResponse ~ Environment1 + Environment2,
                    family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 
 ######### main plotting function #############
 
-# for all functions, quantreg = T will be more
-# informative, but slower
+plot(simulationOutput)
+# for all functions, quantreg = T (default) will be more informative
+# but slower. Alternative:
 
 plot(simulationOutput, quantreg = FALSE)
 
 #############  Distribution  ######################
 
-plotQQunif(simulationOutput = simulationOutput, 
+plotQQunif(simulationOutput = simulationOutput,
            testDispersion = FALSE,
            testUniformity = FALSE,
            testOutliers = FALSE)
 
-hist(simulationOutput )
+hist(simulationOutput)
 
-#############  residual plots  ###############
 
-# rank transformation, using a simulationOutput
-plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE)
-
-# smooth scatter plot - usually used for large datasets, default for n > 10000
-plotResiduals(simulationOutput, rank = TRUE, quantreg = FALSE, smoothScatter = TRUE)
-
-# residual vs predictors, using explicit values for pred, residual 
-plotResiduals(simulationOutput, form = testData$Environment1, 
-              quantreg = FALSE)
-
-# if pred is a factor, or if asFactor = TRUE, will produce a boxplot
-plotResiduals(simulationOutput, form = testData$group)
-
-# to diagnose overdispersion and heteroskedasticity it can be useful to 
-# display residuals as absolute deviation from the expected mean 0.5
-plotResiduals(simulationOutput, absoluteDeviation = TRUE, quantreg = FALSE)
-
-# All these options can also be provided to the main plotting function
-
-# If you want to plot summaries per group, use
-simulationOutput = recalculateResiduals(simulationOutput, group = testData$group)
-plot(simulationOutput, quantreg = FALSE) 
-# we see one residual point per RE
 
 
 }

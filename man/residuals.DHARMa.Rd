@@ -8,52 +8,83 @@
   outlierValues = NULL, ...)
 }
 \arguments{
-\item{object}{an object with simulated residuals created by \link{simulateResiduals}}
+\item{object}{an object with simulated residuals created by \link{simulateResiduals}.}
 
-\item{quantileFunction}{optional - a quantile function to transform the uniform 0/1 scaling of DHARMa to another distribution}
+\item{quantileFunction}{optional - a quantile function to transform the uniform 0/1 scaling of DHARMa to another distribution.}
 
 \item{outlierValues}{if a quantile function with infinite support (such as dnorm) is used, residuals that are 0/1 are mapped to -Inf / Inf. outlierValues allows to convert -Inf / Inf values to an optional min / max value.}
 
-\item{...}{optional arguments for compatibility with the generic function, no function implemented}
+\item{...}{optional arguments for compatibility with the generic function, no function implemented.}
 }
 \description{
 Return residuals of a DHARMa simulation
 }
 \details{
-the function accesses the slot $scaledResiduals in a fitted DHARMa object, and optionally transforms the standard DHARMa quantile residuals (which have a uniform distribution) to a particular pdf.
+The function accesses the slot $scaledResiduals in a fitted DHARMa object, and optionally transforms the standard DHARMa quantile residuals (which have a uniform distribution) to a particular pdf.
 }
 \note{
-some of the papers on simulated quantile residuals transforming the residuals (which are natively uniform) back to a normal distribution. I presume this is because of the larger familiarity of most users with normal residuals. Personally, I never considered this desirable, for the reasons explained in https://github.com/florianhartig/DHARMa/issues/39, but with this function, I wanted to give users the option to plot normal residuals if they so wish.
+Some of the papers on simulated quantile residuals transforming the residuals (which are natively uniform) back to a normal distribution. I presume this is because of the larger familiarity of most users with normal residuals. Personally, I never considered this desirable, for the reasons explained in https://github.com/florianhartig/DHARMa/issues/39, but with this function, I wanted to give users the option to plot normal residuals if they so wish.
 }
 \examples{
 library(lme4)
 
 testData = createData(sampleSize = 100, overdispersion = 0.5, family = poisson())
-fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), 
+fittedModel <- glmer(observedResponse ~ Environment1 + (1|group),
                      family = "poisson", data = testData)
 
-simulationOutput <- simulateResiduals(fittedModel = fittedModel)
+# simulate residuals (default behavior, conditional on the fitted random effects)
+simulationOutput1 <- simulateResiduals(fittedModel = fittedModel)
+plot(simulationOutput1, quantreg = FALSE)
 
-# standard plot 
-plot(simulationOutput)
-
-# one of the possible test, for other options see ?testResiduals / vignette
-testDispersion(simulationOutput)
-
-# the calculated residuals can be accessed via 
-residuals(simulationOutput)
-
-# transform residuals to other pdf, see ?residuals.DHARMa for details
-residuals(simulationOutput, quantileFunction = qnorm, outlierValues = c(-7,7))
-
-# get residuals that are outside the simulation envelope
-outliers(simulationOutput)
-
-# calculating aggregated residuals per group
-simulationOutput2 = recalculateResiduals(simulationOutput, group = testData$group)
+# simulate residuals unconditional on the fitted random effects (REs are re-simulated)
+simulationOutput2 <- simulateResiduals(fittedModel = fittedModel,
+                                       simulateREs = "unconditional")
 plot(simulationOutput2, quantreg = FALSE)
 
-# calculating residuals only for subset of the data
-simulationOutput3 = recalculateResiduals(simulationOutput, sel = testData$group == 1 )
+# simulate residuals user-specified using lme4 syntax (e.g. conditional only on a specific RE)
+simulationOutput3 <- simulateResiduals(fittedModel = fittedModel,
+                                       simulateREs = "user-specified",
+                                       re.form = ~(1|group))
 plot(simulationOutput3, quantreg = FALSE)
+
+# one of the possible test, for other options see ?testResiduals / vignette
+testDispersion(simulationOutput1)
+
+# the calculated residuals can be accessed via
+residuals(simulationOutput1)
+
+# transform residuals to other pdf, see ?residuals.DHARMa for details
+residuals(simulationOutput1, quantileFunction = qnorm, outlierValues = c(-7,7))
+
+# get residuals that are outside the simulation envelope
+outliers(simulationOutput1)
+
+# calculating aggregated residuals per group
+# group here specified as formula (recommended)
+# but you can also use a variable from your environment, e.g. testData$group
+simulationOutput4 = recalculateResiduals(simulationOutput1, group = ~group)
+plot(simulationOutput4, quantreg = FALSE)
+# we see one residual point per RE
+
+# with group as variable in your environment
+# but then you need to exclude NAs by hand
+simulationOutput5 = recalculateResiduals(simulationOutput1, group = testData$group)
+
+# calculating residuals only for subset of the data
+simulationOutput6 = recalculateResiduals(simulationOutput1, sel = testData$group == 1)
+plot(simulationOutput6, quantreg = FALSE)
+
+# or with sel as formula
+simulationOutput7 = recalculateResiduals(simulationOutput1, sel = ~Environment1<0.5)
+
+# as condition based on a variable in your environment
+simulationOutput8 = recalculateResiduals(simulationOutput1, sel = testData$Environment1<0.5)
+
+# or combine group and sel
+simulationOutput9 = recalculateResiduals(simulationOutput1, group = ~group, sel = ~Environment1<0.5)
+
+# or as subset of rows
+# (note: order of rows is based on residuals, not on original dataframe)
+# so be careful with NAs!
+simulationOutput10 = recalculateResiduals(simulationOutput1, sel = 1:20)
 }

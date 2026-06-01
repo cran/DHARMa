@@ -5,47 +5,64 @@
 \alias{getSimulations.default}
 \alias{getSimulations.negbin}
 \alias{getSimulations.gam}
-\alias{getSimulations.lmerMod}
+\alias{getSimulations.merMod}
 \alias{getSimulations.glmmTMB}
 \alias{getSimulations.HLfit}
 \alias{getSimulations.MixMod}
 \alias{getSimulations.phylolm}
 \alias{getSimulations.phyloglm}
+\alias{getSimulations.brmsfit}
 \title{Get model simulations}
 \usage{
-getSimulations(object, nsim = 1, type = c("normal", "refit"), ...)
+getSimulations(object, nsim = 1, simulateREs = c("conditional",
+  "unconditional", "user-specified"), type = c("normal", "refit"), ...)
 
-\method{getSimulations}{default}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{default}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 
-\method{getSimulations}{negbin}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{negbin}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 
-\method{getSimulations}{gam}(object, nsim = 1, type = c("normal", "refit"),
-  mgcViz = TRUE, ...)
+\method{getSimulations}{gam}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), mgcViz = TRUE, ...)
 
-\method{getSimulations}{lmerMod}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{merMod}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 
-\method{getSimulations}{glmmTMB}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{glmmTMB}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 
-\method{getSimulations}{HLfit}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{HLfit}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 
-\method{getSimulations}{MixMod}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{MixMod}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 
-\method{getSimulations}{phylolm}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{phylolm}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 
-\method{getSimulations}{phyloglm}(object, nsim = 1, type = c("normal",
-  "refit"), ...)
+\method{getSimulations}{phyloglm}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
+
+\method{getSimulations}{brmsfit}(object, nsim = 1,
+  simulateREs = c("conditional", "unconditional", "user-specified"),
+  type = c("normal", "refit"), ...)
 }
 \arguments{
 \item{object}{a fitted model.}
 
 \item{nsim}{number of simulations.}
+
+\item{simulateREs}{which hierarchical levels should be re-simulated. If \code{conditional}, the simulations are done conditional on all fitted random effects (default). If \code{unconditional}, all hierarchical levels are re-simulated, including the random effects. With \code{user-specified}, the default simulate function of the respective fitted model object is used. See details and \link{simulateResiduals}.}
 
 \item{type}{if simulations should be prepared for getQuantile or for refit.}
 
@@ -54,17 +71,17 @@ getSimulations(object, nsim = 1, type = c("normal", "refit"), ...)
 \item{mgcViz}{whether simulations should be created with mgcViz (if mgcViz is available)}
 }
 \value{
-A matrix with simulations.
+a matrix with simulations.
 }
 \description{
 Wrapper to simulate from a fitted model.
 }
 \details{
-The purpose of this function is to wrap or implement the simulate function of different model classes and thus return simulations from fitted models in a standardized way.
+The purpose of this function is to wrap or implement the simulate function of different model classes to return simulations from fitted models in a standardized way.
 
-Note: GLMM and other regression packages often differ in how simulations are produced, and which parameters can be used to modify this behavior.
+One important parameter is simulateRE, which controls which hierarchical levels are held constant (conditioned on), and which are re-simulated. The default as of DHARMa 0.5.0 is to simulate "conditional" on all fitted random effects. The setting "unconditional" re-simulates all REs.
 
-One important difference is how to modifiy which hierarchical levels are held constant, and which are re-simulated. In lme4, this is controlled by the re.form argument (see \link[lme4:simulate.merMod]{lme4::simulate.merMod}). In glmmTMB, the package version 1.1.10 has a temporary solution to simulate conditional to all random effects (see \link[glmmTMB:set_simcodes]{glmmTMB::set_simcodes} val = "fix", and issue \href{https://github.com/glmmTMB/glmmTMB/issues/888}{#888} in glmmTMB GitHub repository. For other packages, please consult the help.
+With simulateREs = "user-specified", users can supply additional parameters to the simulate function of the respective model class and thus condition on specific REs or structures. The exact behavior will depdend on the regression package. For details, please see vignette, or consult the help of the different packages. If choosing simulateREs = "user-specified" with no additional parameters, the default simulation function of the respective regression package is used. This corresponds to the DHARMa behavior prior to 0.5.0.
 
 If the model was fit with weights and the respective model class does not include the weights in the simulations, getSimulations will throw a warning. The background is if weights are used on the likelihood directly, then what is fitted is effectively a pseudo likelihood, and there is no way to directly simulate from the specified likelihood. Whether or not residuals can be used in this case depends very much on what is tested and how weights are used. I'm sorry to say that it is hard to give a general recommendation, you have to consult someone that understands how weights are processed in the respective model class.
 }
@@ -88,6 +105,9 @@ x = getSimulations(fittedModel, nsim = 2, type = "refit")
 getRefit(fittedModel, x[[1]])
 
 getRefit(fittedModel, getObservedResponse(fittedModel))
+
+# get data frame that was used to fit the model
+getData(fittedModel)
 }
 \seealso{
 \link{getObservedResponse}, \link{getRefit}, \link{getFixedEffects}, \link{getFitted}

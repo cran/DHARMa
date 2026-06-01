@@ -8,6 +8,7 @@
 \alias{getFitted.MixMod}
 \alias{getFitted.phylolm}
 \alias{getFitted.phyloglm}
+\alias{getFitted.brmsfit}
 \title{Get fitted/predicted values}
 \usage{
 getFitted(object, ...)
@@ -23,19 +24,21 @@ getFitted(object, ...)
 \method{getFitted}{phylolm}(object, ...)
 
 \method{getFitted}{phyloglm}(object, ...)
+
+\method{getFitted}{brmsfit}(object, ...)
 }
 \arguments{
-\item{object}{A fitted model.}
+\item{object}{a fitted model.}
 
-\item{...}{Additional parameters to be passed on, usually to the simulate function of the respective model class.}
+\item{...}{additional parameters to be passed on, usually to the simulate function of the respective model class.}
 }
 \description{
-Wrapper to get the fitted/predicted response of model at the response scale.
+Wrapper to get the fitted/predicted response of the model at the response scale.
 }
 \details{
-The purpose of this wrapper is to standardize extract the fitted values, which is implemented via predict(model, type = "response") for most model classes.
+The purpose of this wrapper is to extract the fitted values, which is implemented via predict(model, type = "response") for most model classes.
 
-If you implement this function for a new model class, you should include an option to modifying which random effects (REs) are included in the predictions. If this option is not available, it is essential that predictions are provided marginally/unconditionally, i.e. without the RE estimates (because of https://github.com/florianhartig/DHARMa/issues/43), which corresponds to re-form = ~0 in lme4.
+If you implement this function for a new model class, you should include an option to modify which random effects (REs) are included in the predictions. If this option is not available, it is essential that predictions are provided marginally/unconditionally, i.e. without the RE estimates (because of https://github.com/florianhartig/DHARMa/issues/43), which corresponds to re-form = ~0 in lme4.
 }
 \examples{
 testData = createData(sampleSize = 400, family = gaussian())
@@ -57,6 +60,9 @@ x = getSimulations(fittedModel, nsim = 2, type = "refit")
 getRefit(fittedModel, x[[1]])
 
 getRefit(fittedModel, getObservedResponse(fittedModel))
+
+# get data frame that was used to fit the model
+getData(fittedModel)
 }
 \seealso{
 \link{getObservedResponse}, \link{getSimulations}, \link{getRefit}, \link{getFixedEffects}

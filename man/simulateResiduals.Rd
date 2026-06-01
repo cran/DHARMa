@@ -4,31 +4,34 @@
 \alias{simulateResiduals}
 \title{Create simulated residuals}
 \usage{
-simulateResiduals(fittedModel, n = 250, refit = FALSE,
+simulateResiduals(fittedModel, n = 250, simulateREs = c("conditional",
+  "unconditional", "user-specified"), refit = FALSE,
   integerResponse = NULL, plot = FALSE, seed = 123, method = c("PIT",
   "traditional"), rotation = NULL, ...)
 }
 \arguments{
-\item{fittedModel}{A fitted model of a class supported by DHARMa.}
+\item{fittedModel}{a fitted model of a class supported by DHARMa.}
 
-\item{n}{Number of simulations. The smaller the number, the higher the stochastic error on the residuals. Also, for very small n, discretization artefacts can influence the tests. Default is 250, which is a relatively safe value. You can consider increasing to 1000 to stabilize the simulated values.}
+\item{n}{number of simulations. The smaller the number, the higher the stochastic error on the residuals. Also, for very small n, discretization artefacts can influence the tests. Default is 250, which is a relatively safe value. You can consider increasing to 1000 to stabilize the simulated values.}
 
-\item{refit}{If FALSE, new data will be simulated and scaled residuals will be created by comparing observed data with new data. If TRUE, the model will be refitted on the simulated data (parametric bootstrap), and scaled residuals will be created by comparing observed with refitted residuals.}
+\item{simulateREs}{decides which REs / hierarchical levels should be re-simulated. If \code{conditional}, simulations are done conditional on all fitted random effects (default). If \code{unconditional}, all REs or hierchical levels are re-simulated. Setting \code{user-specified} allows supplying package-specific arguments to decide which REs are to be re-simulated. If none are supplied, the defaults of the respective fitted model object is used. See details and further comments in \link{getSimulations}.}
 
-\item{integerResponse}{If TRUE, noise will be added at to the residuals to maintain a uniform expectations for integer responses (such as Poisson or Binomial). Usually, the model will automatically detect the appropriate setting, so there is no need to adjust this setting.}
+\item{refit}{if FALSE, new data will be simulated and scaled residuals will be created by comparing observed data with new data. If TRUE, the model will be refitted on the simulated data (parametric bootstrap), and scaled residuals will be created by comparing observed with refitted residuals.}
 
-\item{plot}{If TRUE, \link{plotResiduals} will be directly run after the residuals have been calculated.}
+\item{integerResponse}{if TRUE, noise will be added to the residuals to maintain uniform expectations for integer responses (such as Poisson or Binomial). Usually, the model will automatically detect the appropriate setting, so there is no need to adjust this setting.}
 
-\item{seed}{The random seed to be used within DHARMa. The default setting, recommended for most users, is keep the random seed on a fixed value 123. This means that you will always get the same randomization and thus the same result when running the same code. If NULL, no new seed is set, but previous random state will be restored after simulation. If FALSE, no seed is set, and random state will not be restored. The latter two options are only recommended for simulation experiments. See vignette for details.}
+\item{plot}{if TRUE, \link{plotResiduals} will be directly run after the residuals have been calculated.}
 
-\item{method}{For refit = FALSE, the quantile randomization method is used. The two options implemented at the moment are probability integral transform (PIT-) residuals (current default), and the "traditional" randomization procedure, that was used in DHARMa until version 0.3.0. refit = T will always use "traditional", respectively of the value of method. For details, see \link{getQuantile}.}
+\item{seed}{the random seed to be used within DHARMa. The default setting, recommended for most users, is to keep the random seed on a fixed value of 123. This means that you will always get the same randomization and thus the same result when running the same code. If NULL, no new seed is set, but previous random state will be restored after simulation. If FALSE, no seed is set, and random state will not be restored. The latter two options are only recommended for simulation experiments. See vignette for details.}
 
-\item{rotation}{Optional rotation of the residual space prior to calculating the quantile residuals. The main purpose of this is to account for residual covariance as created by temporal, spatial or phylogenetic autocorrelation. See details below, section \emph{residual autocorrelation} as well as the help of \link{getQuantile} and, for a practical example, \link{testTemporalAutocorrelation}.}
+\item{method}{for refit = FALSE, the quantile randomization method is used. The two options implemented at the moment are probability integral transform (PIT-) residuals (current default), and the "traditional" randomization procedure, that was used in DHARMa until version 0.3.0. refit = T will always use "traditional", regardless of the value of method. For details, see \link{getQuantile}.}
 
-\item{...}{Further parameters to pass on to the simulate function of the model object. An important use of this is to specify whether simulations should be conditional on the current random effect estimates, e.g. via re.form. Note that not all models support syntax to specify conditional or unconditional simulations. See details and \link{getSimulations}.}
+\item{rotation}{optional rotation of the residual space prior to calculating the quantile residuals. The main purpose of this is to account for residual covariance as created by temporal, spatial or phylogenetic autocorrelation. See details below, section \emph{residual autocorrelation} as well as the help of \link{getQuantile} and, for a practical example, \link{testTemporalAutocorrelation}.}
+
+\item{...}{further parameters to pass on to the simulate and update function of the model object (via DHARMa::getSimulations and DHARMa::getRefit). If simulateREs = "user-specified", an important use of this is to specify whether simulations should be conditional on all, some or none of the current random effect estimates, e.g. via re.form. Note that not all models support syntax to specify conditional or unconditional simulations. See details and \link{getSimulations}.}
 }
 \value{
-An S3 class of type "DHARMa". Implemented S3 functions include \link{plot.DHARMa}, \link{print.DHARMa} and \link{residuals.DHARMa}. For other functions that can be used on a DHARMa object, see section "See Also" below.
+an S3 class of type "DHARMa". Implemented S3 functions include \link{plot.DHARMa}, \link{print.DHARMa} and \link{residuals.DHARMa}. For other functions that can be used on a DHARMa object, see section "See Also" below.
 }
 \description{
 The function creates scaled residuals by simulating from the fitted model. Residuals can be extracted with \link{residuals.DHARMa}. See \link{testResiduals} for an overview of residual tests, \link{plot.DHARMa} for an overview of available plots.
@@ -36,11 +39,9 @@ The function creates scaled residuals by simulating from the fitted model. Resid
 \details{
 There are a number of important considerations when simulating from a more complex (hierarchical) model:
 
-\strong{Re-simulating random effects / hierarchical structure}: in a hierarchical model, we have several stochastic processes aligned on top of each other. Specifically, in a GLMM, we have a lower level stochastic process (random effect), whose result enters into a higher level (e.g. Poisson distribution). For other hierarchical models such as state-space models, similar considerations apply.
+\strong{Re-simulating random effects / hierarchical structure}: in a hierarchical or RE model, we have several stochastic processes on top of each other. For example, in a typical Poisson GLMM, we have a lower level normal distribution (random effect), whose result enters at the next hierarchical level into a Poisson distribution. For other hierarchical models such as state-space models, similar considerations apply. When simulating new data in such a situation, we have to decide if we want to re-simulate all stochastic levels (unconditional), only the top level conditional on all other levels (conditional), or if we want to re-simulate a specific subset of REs while conditioning on the others. As of DHARMa 0.5.0, the default was changed to simulating conditionally on all fitted REs. If this is not what you want, you can switch simulateREs to either "unconditional", or "user-specified", which allows to condition on a user-specified set of REs. With "user-specified", if no additional arguments are set, this results in the package behavior previous to version 0.5.0. Note that the syntax to change the behavior is different for each package. Also, specific packages may lack certain functionalities. For further details, please see vignette, \link{getSimulations} and refer to the help of the different simulate functions (e.g. ?simulate.merMod). #'
 
-In such a situation, we have to decide if we want to re-simulate all stochastic levels, or only a subset of those. For example, in a GLMM, it is common to only simulate the last stochastic level (e.g. Poisson) conditional on the fitted random effects. This is often referred to as a conditional simulation. For controlling how many levels should be re-simulated, the simulateResidual function allows to pass on parameters to the simulate function of the fitted model object. Please refer to the help of the different simulate functions (e.g. ?simulate.merMod) for details. For merMod (lme4) model objects, the relevant parameters are parameters are use.u and re.form. For glmmTMB model objects, the package version 1.1.10 has a temporary solution to simulate conditional to all random effects (see \link[glmmTMB:set_simcodes]{glmmTMB::set_simcodes} val = "fix", and issue \href{https://github.com/glmmTMB/glmmTMB/issues/888}{#888} in glmmTMB GitHub repository.
-
-If the model is correctly specified, the simulated residuals should be flat regardless how many hierarchical levels we re-simulate. The most thorough procedure would therefore be to test all possible options. If testing only one option, I would recommend to re-simulate all levels, because this essentially tests the model structure as a whole. This is the default setting in the DHARMa package. A potential drawback is that re-simulating the lower-level random effects creates more variability, which may reduce power for detecting problems in the upper-level stochastic processes. In particular dispersion tests may produce different results when switching from conditional to unconditional simulations, and often the conditional simulation is more sensitive.
+\strong{When to use conditional and unconditional simulations}: If the model is correctly specified, the simulated residuals should be flat regardless which hierarchical levels you re-simulate. Re-simulating all levels (unconditional) can be advantageous because it tests the model structure as a whole. If REs are correlated with a predictor, for example, this will show up in the residuals. A potential drawback is that re-simulating the lower-level random effects creates more variability and correlation structures in the residuals, which may reduce power for detecting problems in the upper-level stochastic processes and, in some cases, can lead to inflated type I error rates through the induces correlations. In particular dispersion tests may produce different results when switching from conditional to unconditional simulations, and often the conditional simulation is more sensitive. The default was therefore switched to conditional in DHARMa 0.5.0 which we consider to be more safe, but it can make sense to overrule this default for specific tests.
 
 \strong{Refitting or not}: a third issue is how residuals are calculated. simulateResiduals has two options that are controlled by the refit parameter:
 \enumerate{
@@ -50,9 +51,9 @@ If the model is correctly specified, the simulated residuals should be flat rega
 
 \strong{Residuals per group}: In many situations, it can be useful to look at residuals per group, e.g. to see how much the model over / underpredicts per plot, year or subject. To do this, use \link{recalculateResiduals}, together with a grouping variable (see also help).
 
-\strong{Transformation to other distributions}: DHARMa calculates residuals for which the theoretical expectation (assuming a correctly specified model) is uniform. To transform this residuals to another distribution (e.g. so that a correctly specified model will have normal residuals) see \link{residuals.DHARMa}.
+\strong{Transformation to other distributions}: DHARMa calculates residuals for which the theoretical expectation (assuming a correctly specified model) is uniform. To transform these residuals to another distribution (e.g. so that a correctly specified model will have normal residuals) see \link{residuals.DHARMa}.
 
-\strong{Integer responses}: this is only relevant if method = "traditional", in which case it activates the randomization of the residuals. Usually, this does not need to be changed, as DHARMa will try to automatically check if the fitted model has an integer or discrete distribution via the family argument. However, in some cases the family does not allow to uniquely identify the distribution type. For example, a tweedie distribution can be interger or continuous. Therefore, DHARMa will additionally check the simulation results for repeated values, and will change the distribution type if repeated values are found (a message is displayed in this case).
+\strong{Integer responses}: this is only relevant if method = "traditional", in which case it activates the randomization of the residuals. Usually, this does not need to be changed, as DHARMa will try to automatically check if the fitted model has an integer or discrete distribution via the family argument. However, in some cases the family does not allow to uniquely identify the distribution type. For example, a tweedie distribution can be integer or continuous. Therefore, DHARMa will additionally check the simulation results for repeated values, and will change the distribution type if repeated values are found (a message is displayed in this case).
 
 \strong{Residual autocorrelation}: a common problem is residual autocorrelation. Spatial, temporal and phylogenetic autocorrelation can be tested with \link{testSpatialAutocorrelation}, \link{testTemporalAutocorrelation} and \link{testPhylogeneticAutocorrelation}. If simulations are unconditional, residual correlations will be maintained, even if the autocorrelation is addressed by an appropriate CAR structure. This may be a problem, because autocorrelation may create apparently systematic patterns in plots or tests such as \link{testUniformity}. To reduce this problem, either simulate conditional on fitted correlated REs, or rotate residuals via the rotation parameter (the latter will likely only work in approximately linear models). See \link{getQuantile} for details on the rotation.
 }
@@ -60,33 +61,64 @@ If the model is correctly specified, the simulated residuals should be flat rega
 library(lme4)
 
 testData = createData(sampleSize = 100, overdispersion = 0.5, family = poisson())
-fittedModel <- glmer(observedResponse ~ Environment1 + (1|group), 
+fittedModel <- glmer(observedResponse ~ Environment1 + (1|group),
                      family = "poisson", data = testData)
 
-simulationOutput <- simulateResiduals(fittedModel = fittedModel)
+# simulate residuals (default behavior, conditional on the fitted random effects)
+simulationOutput1 <- simulateResiduals(fittedModel = fittedModel)
+plot(simulationOutput1, quantreg = FALSE)
 
-# standard plot 
-plot(simulationOutput)
-
-# one of the possible test, for other options see ?testResiduals / vignette
-testDispersion(simulationOutput)
-
-# the calculated residuals can be accessed via 
-residuals(simulationOutput)
-
-# transform residuals to other pdf, see ?residuals.DHARMa for details
-residuals(simulationOutput, quantileFunction = qnorm, outlierValues = c(-7,7))
-
-# get residuals that are outside the simulation envelope
-outliers(simulationOutput)
-
-# calculating aggregated residuals per group
-simulationOutput2 = recalculateResiduals(simulationOutput, group = testData$group)
+# simulate residuals unconditional on the fitted random effects (REs are re-simulated)
+simulationOutput2 <- simulateResiduals(fittedModel = fittedModel,
+                                       simulateREs = "unconditional")
 plot(simulationOutput2, quantreg = FALSE)
 
-# calculating residuals only for subset of the data
-simulationOutput3 = recalculateResiduals(simulationOutput, sel = testData$group == 1 )
+# simulate residuals user-specified using lme4 syntax (e.g. conditional only on a specific RE)
+simulationOutput3 <- simulateResiduals(fittedModel = fittedModel,
+                                       simulateREs = "user-specified",
+                                       re.form = ~(1|group))
 plot(simulationOutput3, quantreg = FALSE)
+
+# one of the possible test, for other options see ?testResiduals / vignette
+testDispersion(simulationOutput1)
+
+# the calculated residuals can be accessed via
+residuals(simulationOutput1)
+
+# transform residuals to other pdf, see ?residuals.DHARMa for details
+residuals(simulationOutput1, quantileFunction = qnorm, outlierValues = c(-7,7))
+
+# get residuals that are outside the simulation envelope
+outliers(simulationOutput1)
+
+# calculating aggregated residuals per group
+# group here specified as formula (recommended)
+# but you can also use a variable from your environment, e.g. testData$group
+simulationOutput4 = recalculateResiduals(simulationOutput1, group = ~group)
+plot(simulationOutput4, quantreg = FALSE)
+# we see one residual point per RE
+
+# with group as variable in your environment
+# but then you need to exclude NAs by hand
+simulationOutput5 = recalculateResiduals(simulationOutput1, group = testData$group)
+
+# calculating residuals only for subset of the data
+simulationOutput6 = recalculateResiduals(simulationOutput1, sel = testData$group == 1)
+plot(simulationOutput6, quantreg = FALSE)
+
+# or with sel as formula
+simulationOutput7 = recalculateResiduals(simulationOutput1, sel = ~Environment1<0.5)
+
+# as condition based on a variable in your environment
+simulationOutput8 = recalculateResiduals(simulationOutput1, sel = testData$Environment1<0.5)
+
+# or combine group and sel
+simulationOutput9 = recalculateResiduals(simulationOutput1, group = ~group, sel = ~Environment1<0.5)
+
+# or as subset of rows
+# (note: order of rows is based on residuals, not on original dataframe)
+# so be careful with NAs!
+simulationOutput10 = recalculateResiduals(simulationOutput1, sel = 1:20)
 }
 \seealso{
 \link{testResiduals}, \link{plotResiduals}, \link{recalculateResiduals}, \link{outliers}
