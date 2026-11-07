@@ -58,6 +58,7 @@ plot(simulationOutput)
 
 ## ----eval = FALSE-------------------------------------------------------------
 # plotResiduals(simulationOutput, form = ~ predictor | group == "group_level")
+# plotResiduals(simulationOutput, form = ~ predictor | group %in% c("level_1", "level_2")) # one plot per selected level
 
 ## ----eval = FALSE-------------------------------------------------------------
 # plotResiduals(simulationOutput, form = ~ factor)
@@ -108,8 +109,8 @@ plot(testData$Environment1, testData$observedResponse,
 hist(testData$observedResponse, xlab = "Response", main = "")
 
 ## ----fig.height=5.5-----------------------------------------------------------
-fittedModel <- glmer(observedResponse ~ Environment1 + I(Environment1^2) + 
-                       (1|group), family = "poisson", data = testData)
+fittedModel <- glm(observedResponse ~ Environment1 + I(Environment1^2),
+                   family = "poisson", data = testData)
 
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput)
@@ -119,8 +120,8 @@ testZeroInflation(simulationOutput)
 
 ## ----eval= FALSE--------------------------------------------------------------
 # # requires glmmTMB
-# fittedModel <- glmmTMB(observedResponse ~ Environment1 + I(Environment1^2) +
-#                          (1|group), ziformula = ~1 , family = "poisson",
+# fittedModel <- glmmTMB(observedResponse ~ Environment1 + I(Environment1^2),
+#                        ziformula = ~1 , family = "poisson",
 #                        data = testData)
 # summary(fittedModel)
 # 
@@ -150,17 +151,17 @@ plot(simulationOutput)
 # testCategorical(simulationOutput, catPred = ~group)
 
 ## -----------------------------------------------------------------------------
-testData = createData(sampleSize = 500, intercept = 0, 
-                      overdispersion = function(x){return(rnorm(length(x), 
-                                                                sd = 2*abs(x)))}, 
-                      family = poisson(), randomEffectVariance = 0)
-fittedModel <- glmer(observedResponse ~ Environment1 + (1|group) + (1|ID), 
-                     family = "poisson", data = testData)
+plotResiduals(simulationOutput, form= ~Environment1, absoluteDeviation = T)
 
-# plotConventionalResiduals(fittedModel)
-
-simulationOutput <- simulateResiduals(fittedModel = fittedModel)
-plot(simulationOutput)
+## -----------------------------------------------------------------------------
+library(glmmTMB)
+fittedModel2 <- glmmTMB(observedResponse ~ Environment1, 
+                        dispformula = ~Environment1,
+                        family = nbinom2(), 
+                   data = testData)
+simulationOutput2 <- simulateResiduals(fittedModel2)
+plot(simulationOutput2)
+plotResiduals(simulationOutput2, form= ~Environment1, absoluteDeviation = T)
 
 ## ----eval = FALSE-------------------------------------------------------------
 # simulationOutput$scaledResiduals
@@ -173,7 +174,6 @@ fittedModel <- glmer(observedResponse ~ Environment1 + Environment2 + (1|group),
                      family = "poisson", data = testData)
 simulationOutput <- simulateResiduals(fittedModel = fittedModel)
 plot(simulationOutput, quantreg = TRUE)
-# testUniformity(simulationOutput = simulationOutput)
 
 ## -----------------------------------------------------------------------------
 par(mfrow = c(1,2))
@@ -224,12 +224,12 @@ data = structure(list(N_parasitized = c(226, 689, 481, 960, 1177, 266,
 91.3766566822467, 126.157080458047, 82.9699108890686, 61.0476207779938, 
 0.574539291305784), Plot = structure(c(1L, 1L, 1L, 1L, 1L, 1L, 
 1L, 1L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 2L, 3L, 3L, 3L, 3L, 3L, 3L
-), .Label = c("1", "2", "3", "4"), class = "factor"), PY = c("p1y82", 
+), levels = c("1", "2", "3", "4"), class = "factor"), PY = c("p1y82", 
 "p1y83", "p1y84", "p1y85", "p1y86", "p1y87", "p1y88", "p1y89", 
 "p2y86", "p2y87", "p2y88", "p2y89", "p2y90", "p2y91", "p2y92", 
 "p2y93", "p3y88", "p3y89", "p3y90", "p3y91", "p3y92", "p3y93"
 ), Year = c(82, 83, 84, 85, 86, 87, 88, 89, 86, 87, 88, 89, 90, 
-91, 92, 93, 88, 89, 90, 91, 92, 93), ID = 1:22), .Names = c("N_parasitized", 
+91, 92, 93, 88, 89, 90, 91, 92, 93), ID = 1:22), names = c("N_parasitized", 
 "N_adult", "density.attack", "Plot", "PY", "Year", "ID"), row.names = c("p1y82", 
 "p1y83", "p1y84", "p1y85", "p1y86", "p1y87", "p1y88", "p1y89", 
 "p2y86", "p2y87", "p2y88", "p2y89", "p2y90", "p2y91", "p2y92", 
@@ -385,9 +385,9 @@ testData = createData(sampleSize = 500, overdispersion = 0,
                       randomEffectVariance = 3, numGroups = 50)
 
 ## -----------------------------------------------------------------------------
-res <- simulateResiduals(fittedModel = fittedModel)
 fittedModel <- glm(observedResponse ~ Environment1, family = "binomial", 
                    data = testData)
+res <- simulateResiduals(fittedModel = fittedModel)
 plot(res)
 
 ## -----------------------------------------------------------------------------
@@ -435,7 +435,7 @@ sim = simulatePoissonGLM(fittedModel, 100)
 
 DHARMaRes = createDHARMa(simulatedResponse = sim, 
                          observedResponse = testData$observedResponse, 
-                         fittedPredictedResponse = predict(fittedModel), 
+                         fittedPredictedResponse = predict(fittedModel, type = "response"), 
                          integerResponse = TRUE)
 #plot(DHARMaRes, quantreg = FALSE)
 

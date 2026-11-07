@@ -12,7 +12,7 @@
 
 <meta name="author" content="Florian Hartig, Theoretical Ecology, University of Regensburg website" />
 
-<meta name="date" content="2026-05-26" />
+<meta name="date" content="2026-11-07" />
 
 <title>DHARMa for Bayesians</title>
 
@@ -50,8 +50,9 @@ overflow: visible;
 }
 </style>
 <style type="text/css" data-origin="pandoc">
+html { -webkit-text-size-adjust: 100%; }
 pre > code.sourceCode { white-space: pre; position: relative; }
-pre > code.sourceCode > span { line-height: 1.25; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
 pre > code.sourceCode > span:empty { height: 1.2em; }
 .sourceCode { overflow: visible; }
 code.sourceCode > span { color: inherit; text-decoration: inherit; }
@@ -62,7 +63,7 @@ div.sourceCode { overflow: auto; }
 }
 @media print {
 pre > code.sourceCode { white-space: pre-wrap; }
-pre > code.sourceCode > span { display: inline-block; text-indent: -5em; padding-left: 5em; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
 }
 pre.numberSource code
 { counter-reset: source-line 0; }
@@ -351,7 +352,7 @@ code > span.er { color: #a61717; background-color: #e3d2d2; }
 <h1 class="title toc-ignore">DHARMa for Bayesians</h1>
 <h4 class="author">Florian Hartig, Theoretical Ecology, University of
 Regensburg <a href="https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig/team/prof-dr-florian-hartig">website</a></h4>
-<h4 class="date">2026-05-26</h4>
+<h4 class="date">2026-11-07</h4>
 <div class="abstract">
 <p class="abstract">Abstract</p>
 <p>The ‘DHARMa’ package uses a simulation-based approach to create
@@ -568,8 +569,8 @@ the MLE is reasonably sharp. In practice, I have self experienced
 problems with MLE estimates. It’s a bit different in the Bayesian case,
 where it is possible and often done to fit very complex models with
 limited data. In this case, many of the general issues in defining null
-distributions for Bayesian p-values (as, e.g., reviewed in <a href="https://esajournals.onlinelibrary.wiley.com/doi/10.1002/ecm.1314">Conn
-et al., 2018</a>) apply.</p>
+distributions for Bayesian p-values (as, e.g., reviewed in <a href="https://doi.org/10.1002/ecm.1314">Conn et al., 2018</a>)
+apply.</p>
 <p>I would add though that while I find it important that users are
 aware of those differences, I have found that in practice these issues
 are small, and usually overruled by the much stronger effects of model
